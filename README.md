@@ -11,11 +11,11 @@ Source: https://github.com/WBEMextras/WBEMextras
 
 License: GPL v3
 
-Purpose: This project (similar) contains a few scripts written in Korn shell to assist you in installing,
+Purpose: This project (WBEMextras) contains a few scripts written in Korn shell to assist you in installing,
 upgrading HP-SIM related software on HP-UX systems. A SIM Health Check script is also foreseen to inspect
 the status of the software and some other basic checks including sending a test event to HP Support Centre.
 
 An HTML file is included with more information on the pre-requisites and how to use these scripts.
 
-See /usr/share/doc/similar.html
+See /usr/share/doc/wbemextras.html
 
