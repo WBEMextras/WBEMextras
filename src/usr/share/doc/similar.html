@@ -1,0 +1,1822 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.3" />
+<title>The SIM Installation and Logging (similar) project</title>
+<style type="text/css">
+/* Sans-serif font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+div#toctitle,
+span#author, span#revnumber, span#revdate, span#revremark,
+div#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+/* Serif font. */
+div.sectionbody {
+  font-family: Georgia,"Times New Roman",Times,serif;
+}
+
+/* Monospace font. */
+tt {
+  font-size: inherit;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+tt {
+  font-size: inherit;
+  color: navy;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+span#email {
+}
+span#revnumber, span#revdate, span#revremark {
+}
+
+div#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #777777;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+
+div#toc {
+  margin-bottom: 2.5em;
+}
+
+div#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+window.onload = function(){asciidoc.footnotes(); asciidoc.toc(2);}
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  var cont = document.getElementById("content");
+  var noteholder = document.getElementById("footnotes");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      // Use [\s\S] in place of . so multi-line matches work.
+      // Because JavaScript has no s (dotall) regex flag.
+      note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      spans[i].innerHTML =
+        "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+        "' title='View footnote' class='footnote'>" + n + "</a>]";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+}
+
+}
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>The SIM Installation and Logging (similar) project</h1>
+<span id="author">Gratien D'haese</span><br />
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_introduction">Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This document will explain the scripts developed to install, upgrade and verify the health check of HP System Insight Management (HPSIM) Insight Remote Support Advanced (IRSA) on HP-UX based systems.</p></div>
+<div class="paragraph"><p>HP-UX systems use next to SNMP to send traps to the HPSIM server, also the WBEM protocols via the so called cimproviders to comminucate with the HPSIM server about their health status. The System Fault Management (SFM) software is used to send hardware failure reports via the HPSIM server and the IRSA plug-in (running on top of the HPSIM server) to the HP Support centre in an automatic way with any user intervention.</p></div>
+<div class="paragraph"><p>However, the HPSIM IRSA software components are known to be very problematic to install and/or upgrade on HP-UX systems because of the many inter-dependencies [<a href="#x3">3</a>].
+The question may arise why do we need some scripts to install software on HP-UX systems as <tt>/usr/sbin/swinstall</tt> command does this already?</p></div>
+<div class="paragraph"><p>During a migration project of ISEE towards HPSIM on HP-UX systems in 2009 we were faced with various types of problems, which we were able to group into the following sections:</p></div>
+<div class="ulist"><div class="title">Groups are:</div><ul>
+<li>
+<p>
+Software installation problems, e.g. missing pre-requisite patches, or other software components required. Also, during upgrades we were faced with backward requirements which we thought these requirements were already fulfilled.
+</p>
+</li>
+<li>
+<p>
+Configuration problems whereby in HPSIM it was not possible to make a successful WBEM event subscription, or WEBES subscription did not happen automatically.
+</p>
+</li>
+<li>
+<p>
+Operational problems which lead to unmonitored HP-UX systems where we were in the opinion everything worked fine. The most common issues were with cimprovider daemons that took 100% of CPUs, or agents that were in a degraded state, or sometimes our non-privileged account (wbem) became locked on the system. All these various types of (small) issues lead to the fact that a HP-UX system cannot send out an alert to the HP SIM server and therefore no automatic incident could be created at HP.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>To assist us in getting the HPSIM-IRSA software properly installed we designed a script to accomplish this in a structured way. Upgrading existing HP-UX systems with newer releases of HPSIM-IRSA components was also a challenge and therefore, we wrote also a script to assist in task. To make sure all the software components are installed properly and configured according the rules we wrote a third script to check the HPSIM Healh status on the HP-UX systems.
+In the following chapters we will explain in detail all the scripts, software depot requirements, and the usage of them in detail.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_hp_ux_software_depots">The HP-UX Software Depots</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The scripts that will help us to install the HPSIM-IRSA software components on HP-UX systems must first be downloaded from either HP-UX Application CD-ROMs or from the HP Software Depot site [<a href="#x1">1</a>].
+The HP-UX Operating Systems in scope are HP-UX 11.11, HP-UX 11.23 and HP-UX 11.31. Older versions of HP-UX Operating System are not supported by HPSIM-IRSA anymore. If you wish you can download from the HP Software Depot site each software depot individually. In our depots we collected the following software depots.</p></div>
+<div class="paragraph"><p>It would be nice that the collection of software depots could be made available as one big software depot, e.g. <tt>irsa-1111.depot.gz</tt> and made available for download for usage.</p></div>
+<div class="sect2">
+<h3 id="_software_depot_for_hp_ux_11_11">Software depot for HP-UX 11.11</h3>
+<div class="paragraph"><p>The versions of the software depots can vary over time. This list was made in January 2012.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>  B9073BA                               B.11.11.09.02.00.07     HP-UX iCOD Instant Capacity (iCAP)
+  EventMonitoring                       A.04.20.11.05           Event Monitoring Service
+  FCProvider                            B.11.11.08              CIM/WBEM Provider for Fibre Channel HBAs
+  FileSysProvider                       B.11.11.01              HP-UX File System CIM Provider
+  IOTreeIndication                      B.11.11.0712            CIM/WBEM Indication Provider for IOTree subsystem
+  IOTreeProvider                        B.11.11.06              CIM/WBEM Provider for HPUX IOTree
+  LVMProvider                           B.11.11.05              CIM/WBEM Provider for LVM
+  OnlineDiag                            B.11.11.21.07           HPUX 11.11 Support Tools Bundle, March 2011
+  OpenSSL                               A.00.09.08s.001         Secure Network Communications Protocol
+  RS-ACC                                A.05.50.26.007          HP Remote Support Advanced Configuration Collector
+  SCSIProvider                          B.11.11.07              CIM/WBEM Provider for SCSI HBA
+  SysFaultMgmt                          A.04.04.02.01           HPUX 11.11 System Fault Management
+  SysMgmtWeb                            A.2.2.9.3.1             HP-UX Web Based System Management User Interfaces
+  UtilProvider                          A.01.08.05.02           HP-UX Utilization Provider
+  WBEMP-LAN-00                          B.11.11.0706            LAN Providers for Ethernet LAN interfaces.
+  WBEMP-LAN-TEST-00                     B.11.11.03              LAN Provider Test package
+  WBEMSvcs                              A.02.07.06              HP WBEM Services for HP-UX
+  hpuxwsApache                          B.2.0.59.16             HP-UX Apache-based Web Server
+  nParProvider                          B.12.02.07.03           nPartition Provider - HP-UX
+  vParProvider                          B.11.11.01.06           vPar Provider - HP-UX
+  EMS-KRMonitor                         A.11.11.05              EMS Kernel Resource Monitor
+  WBEMextras                            A.01.00.04              HP WBEM Extras for HP-UX</tt></pre>
+</div></div>
+<div class="paragraph"><p>The above list contains two depots that are not available on the HP Software Depot site:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The <tt>RS-ACC</tt> depots are available from the HPSIM server (or Central Management Server) location <tt>&lt;dir&gt;:\HP\Installers\UC\ACC\HPUX\</tt>, and
+</p>
+</li>
+<li>
+<p>
+the <tt>WBEMextras</tt> depot was made by us and will be explained in a seperate chapter.
+</p>
+</li>
+</ol></div>
+</div>
+<div class="sect2">
+<h3 id="_software_depot_for_hp_ux_11_23">Software depot for HP-UX 11.23</h3>
+<div class="paragraph"><p>The software depots for HP-UX 11.23 contains the following components:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>  B9073BA                       B.11.23.10.00.00.11     HP-UX iCOD Instant Capacity (iCAP)
+  CommonIO                      B.11.23.1102            Common IO Drivers
+  EventMonitoring               A.04.20.23.06           Event Monitoring Service
+  FCProvider                    B.11.23.1103            CIM/WBEM Provider for Fibre Channel HBAs
+  FileSysProvider               B.11.23.0706            HP-UX File System CIM Provider.
+  IOTreeIndication              B.11.23.1003            CIM/WBEM Indication Provider for IOTree subsystem
+  KernelProviders               B.01.01.02.01           HPUX Kernel Providers
+  LVMProvider                   R11.23.009              CIM/WBEM Provider for LVM
+  OnlineDiag                    B.11.23.13.05           HPUX 11.23 Support Tools Bundle, December 2009
+  OpenSSL                       A.00.09.08s.002         Secure Network Communications Protocol
+  RAIDSAProvider                B.11.23.1012            Smart Array RAID Provider
+  RS-ACC                        A.05.50.26.007          HP Remote Support Advanced Configuration Collector
+  RS-ACC                        A.05.50.26.007          HP Remote Support Advanced Configuration Collector
+  SASProvider                   B.11.23.1012            SerialSCSI Provider
+  SCSIProvider                  B.11.23.1009            CIM/WBEM Provider for SCSI HBA
+  SD                            B.11.23.1009.352        HP Software Distributor
+  SysFaultMgmt                  B.07.05.01.02           HPUX System Fault Management
+  SysMgmtBASE                   B.00.02.03.03           SysMgmtBASE
+  SysMgmtWeb                    A.3.2.0                 HP-UX Web Based System Management User Interfaces
+  UtilProvider                  A.01.08.05.02           HP-UX Utilization Provider
+  WBEMP-LAN-00                  B.11.23.1009            LAN Providers for Ethernet LAN interfaces.
+  WBEMSvcs                      A.02.09.08              HP WBEM Services for HP-UX
+  WBEMpatches-1123              B.2011.12.13            IRSA patch bundle for HP-UX 11.23
+  hpuxwsApache                  B.2.0.59.16             HP-UX Apache-based Web Server
+  nParProvider                  B.23.01.07.05           nPartition Provider - HP-UX
+  vParProvider                  B.11.23.01.07           vPar Provider - HP-UX
+  PHCO_34721                    1.0                     killall(1M) cumulative patch
+  PHCO_40382                    1.0                     Cumulative IO Tree Provider patch
+  WBEMextras                    A.01.00.04              HP WBEM Extras for HP-UX</tt></pre>
+</div></div>
+<div class="paragraph"><p>The above list contains two depots that are not available on the HP Software Depot site:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The <tt>RS-ACC</tt> depots are available from the HPSIM server (or Central Management Server) location <tt>&lt;dir&gt;:\HP\Installers\UC\ACC\HPUX\</tt>, and
+</p>
+</li>
+<li>
+<p>
+the <tt>WBEMextras</tt> depot was made by us and will be explained in a seperate chapter, and
+</p>
+</li>
+<li>
+<p>
+the <tt>WBEMpatches-1123</tt> are a bunch of patches downloaded from HP Support Center [<a href="#x2">2</a>], but we will explain the creation of this patch bundle seperately.
+</p>
+</li>
+</ol></div>
+</div>
+<div class="sect2">
+<h3 id="_software_depot_for_hp_ux_11_31">Software depot for HP-UX 11.31</h3>
+<div class="paragraph"><p>The software depots for HP-UX 11.31 contains the following components:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>  B9073BA                       B.11.31.10.03.00.06     HP-UX iCOD Instant Capacity (iCAP)
+  CommonIO                      B.11.31.1109            Common IO Drivers
+  EventMonitoring               A.04.20.31.07           Event Monitoring Service
+  OnlineDiag                    B.11.31.17.04           HPUX 11.31 Support Tools Bundle, Mar 2011
+  OpenSSL                       A.00.09.08s.003         Secure Network Communications Protocol
+  RS-ACC                        A.05.50.26.007          HP Remote Support Advanced Configuration Collector
+  SysMgmtPlus                   A.06.00.04.01           HP-UX SMH Supplemental Functionality
+  SysMgmtWeb                    A.3.2.2                 HP-UX Web Based System Management User Interfaces
+  UtilProvider                  A.01.08.06.02           HP-UX Utilization Provider
+  WBEMMgmtBundle                C.02.01                 WBEMMgmtBundle
+  hpuxws22Apache                B.2.2.15.10             HP-UX Apache-based Web Server
+  hpuxws22Tomcat                B.5.5.34.02             HP-UX Tomcat-based Servlet Engine
+  hpuxws22Webmin                A.1.070.13              HP-UX Webmin-based Admin
+  PHCO_36032                    1.0                     killall(1M) cumulative patch
+  PHCO_36038                    1.0                     esmd(1M) cumulative patch
+  PHCO_40087                    1.0                     Event Management (EVM) cumulative patch
+  PHCO_41122                    1.0                     IOTreeModule Provider Patch
+  PHCO_41483                    1.0                     cumulative libipmimsg patch
+  SysMgmtBase                   B.00.02.04.09           HP-UX Common System Management Enablers
+  WBEMextras                    A.01.00.04              HP WBEM Extras for HP-UX</tt></pre>
+</div></div>
+<div class="paragraph"><p>The above list contains two depots that are not available on the HP Software Depot site:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The <tt>RS-ACC</tt> depots are available from the HPSIM server (or Central Management Server) location <tt>&lt;dir&gt;:\HP\Installers\UC\ACC\HPUX\</tt>, and
+</p>
+</li>
+<li>
+<p>
+the <tt>WBEMextras</tt> depot was made by us and will be explained in a seperate chapter
+</p>
+</li>
+</ol></div>
+</div>
+<div class="sect2">
+<h3 id="_copying_the_software_depots">Copying the software depots</h3>
+<div class="paragraph"><p>The best place to copy the software depots is on the HP-UX Ignite server and foresee a file system with plenty of space (5 GBytes). Decide on a file system path name, e.g. <tt>/var/opt/ignite/depots/GLOBAL/irsa</tt> and create the path as follow:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ mkdir -m 755 -p /var/opt/ignite/depots/GLOBAL/irsa</tt></pre>
+</div></div>
+<div class="paragraph"><p>Under this path we can <tt>swcopy</tt> our depot files downloaded from HP, e.g. for HP-UX 11.11 execute the following <tt>swcopy</tt> command and verify with <tt>swlist</tt> if the depot was successfully copied:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ swcopy -x enforce_dependencies=false -x mount_all_filesystems=false -x autoselect_dependencies=false \
+         -s /depots/irsa-1111.depot \* @ /var/opt/ignite/depots/GLOBAL/irsa/11.11
+$ swlist -s /var/opt/ignite/depots/GLOBAL/irsa/11.11
+  B9073BA                               B.11.11.09.02.00.07     HP-UX iCOD Instant Capacity (iCAP)
+  EventMonitoring                       A.04.20.11.05           Event Monitoring Service
+  FCProvider                            B.11.11.08              CIM/WBEM Provider for Fibre Channel HBAs
+  FileSysProvider                       B.11.11.01              HP-UX File System CIM Provider
+  IOTreeIndication                      B.11.11.0712            CIM/WBEM Indication Provider for IOTree subsystem
+  IOTreeProvider                        B.11.11.06              CIM/WBEM Provider for HPUX IOTree
+  LVMProvider                           B.11.11.05              CIM/WBEM Provider for LVM
+  OnlineDiag                            B.11.11.21.07           HPUX 11.11 Support Tools Bundle, March 2011
+  OpenSSL                               A.00.09.08s.001         Secure Network Communications Protocol
+  RS-ACC                                A.05.50.26.007          HP Remote Support Advanced Configuration Collector
+  SCSIProvider                          B.11.11.07              CIM/WBEM Provider for SCSI HBA
+  SysFaultMgmt                          A.04.04.02.01           HPUX 11.11 System Fault Management
+  SysMgmtWeb                            A.2.2.9.3.1             HP-UX Web Based System Management User Interfaces
+  UtilProvider                          A.01.08.05.02           HP-UX Utilization Provider
+  WBEMP-LAN-00                          B.11.11.0706            LAN Providers for Ethernet LAN interfaces.
+  WBEMP-LAN-TEST-00                     B.11.11.03              LAN Provider Test package
+  WBEMSvcs                              A.02.07.06              HP WBEM Services for HP-UX
+  hpuxwsApache                          B.2.0.59.16             HP-UX Apache-based Web Server
+  nParProvider                          B.12.02.07.03           nPartition Provider - HP-UX
+  vParProvider                          B.11.11.01.06           vPar Provider - HP-UX
+  EMS-KRMonitor                         A.11.11.05              EMS Kernel Resource Monitor
+  WBEMextras                            A.01.00.04              HP WBEM Extras for HP-UX</tt></pre>
+</div></div>
+<div class="paragraph"><p>We repeat these commands for HP-UX 11.23 and HP-UX 11.31 software depots.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_creation_of_wbempatches_1123_patch_depot">Creation of WBEMpatches-1123 patch depot</h3>
+<div class="paragraph"><p>Login on the HP Support centera [<a href="#x2">2</a>] (registration is required, but free of charge) and select <em>patch management</em>, <em>find a specfic patch</em> and type in the following list of patches in the "search test" box, also select from the pull-down menus <em>Search by Patch ID</em> and <em>OS revision</em> "HP-UX 11.23", then finally click on the <em>Search</em> button:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+PHSS_41495
+</p>
+</li>
+<li>
+<p>
+PHKL_34795
+</p>
+</li>
+<li>
+<p>
+PHKL_40918
+</p>
+</li>
+<li>
+<p>
+PHCO_41860
+</p>
+</li>
+<li>
+<p>
+PHSS_35055
+</p>
+</li>
+<li>
+<p>
+PHSS_41422
+</p>
+</li>
+<li>
+<p>
+PHKL_31500
+</p>
+</li>
+<li>
+<p>
+PHSS_36870
+</p>
+</li>
+<li>
+<p>
+PHKL_36288
+</p>
+</li>
+<li>
+<p>
+PHSS_42043
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The patches will be shown on the screen and select the most recent ones and click on the <em>Add to my patch list</em> button. The patches can be downloaded by clicking on the <em>Download Selected</em> button and select the <em>Download GZIP Package</em> option and then the patch bundle will be downloaded and saved as <tt>hpux_11.23_&lt;random nr&gt;.tgz</tt>.</p></div>
+<div class="paragraph"><p>The following steps must be executed on an HP-UX system, the Operating System version is not relevant for these steps. We will extract the patches and create a patch depot of it:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ gunzip -c ../hpux_11.23_12131249.tgz | tar xf -
+$ ./create_depot_hpux.11.23 -i
+Depot name [/depots/WBEMpatches/depot]:
+Bundle name [BUNDLE]: WBEMpatches-1123
+Bundle title [Patch Bundle]: IRSA patch bundle for HP-UX 11.23
+Unshar patch files ([y]/n):
+DEPOT: /depots/WBEMpatches/depot
+BUNDLE: WBEMpatches-1123
+TITLE: IRSA patch bundle for HP-UX 11.23
+UNSHAR: y
+PSF: depot.psf
+Expanding patch shar files...
+x - PHSS_41495.text
+x - PHSS_41495.depot [non-ascii]
+x - PHKL_34795.text
+x - PHKL_34795.depot [non-ascii]
+x - PHCO_41860.text
+x - PHCO_41860.depot [non-ascii]
+x - PHKL_40918.text
+x - PHKL_40918.depot [non-ascii]
+x - PHSS_35055.text
+x - PHSS_35055.depot [non-ascii]
+x - PHSS_41422.text
+x - PHSS_41422.depot [non-ascii]
+x - PHKL_31500.text
+x - PHKL_31500.depot [non-ascii]
+x - PHSS_36870.text
+x - PHSS_36870.depot [non-ascii]
+x - PHSS_42043.text
+x - PHSS_42043.depot [non-ascii]
+x - PHKL_36288.text
+x - PHKL_36288.depot [non-ascii]
+list of SD installable patches =  PHSS_41495  PHKL_34795  PHCO_41860  PHKL_40918  PHSS_35055  PHSS_41422  PHKL_31500  PHSS_36870
+ PHSS_42043  PHKL_36288
+Copying PHSS_41495 into depot /depots/WBEMpatches/depot
+...
+$ swlist -s $PWD/depot \*
+
+  WBEMpatches-1123      B.2012.01.27   IRSA patch bundle for HP-UX 11.23</tt></pre>
+</div></div>
+<div class="paragraph"><p>The <tt>$PWD/depot</tt> is a directory containing all the patches, but we prefer to have a portable depot (is like a <tt>tar</tt> archive) which can be easily moved to another HP-UX system via scp, e-mail or whatever means of transport. To accomplish this execute the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ swpackage -d $PWD/WBEMpatches-1123.depot -x target_type=tape -s $PWD/depot \*
+...
+       * Tape #1: CRC-32 checksum &amp; size: 948628547 155484160
+
+$ cksum WBEMpatches-1123.depot
+948628547 155484160 WBEMpatches-1123.depot</tt></pre>
+</div></div>
+<div class="paragraph"><p>This patch bundle will afterwards be copied into the IRSA software depot of HP-UX 11.23, e.g.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>swcopy -x enforce_dependencies=false -x mount_all_filesystems=false -x autoselect_dependencies=false \
+       -s $PWD/WBEMpatches/WBEMpatches-1123.depot \* @ /var/opt/ignite/depots/GLOBAL/irsa/11.23</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_maintaining_the_software_depots">Maintaining the software depots</h3>
+<div class="paragraph"><p>Nothing is perfect, so at least on a quartely basis updates will be released by HP. Therefore, it is important to keep these software depots up to date. If needed, ask assistance at HP (they have trained consultants in-house who can do this task for you).
+It is key not to forget to keep the software depots in good health as these will be installed on the HP-UX managed nodes through out your organization. To avoid repeating the same exercises over and over again make sure that the source depots, on the Ignite/UX server, are in good shape.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_hpsim_configuration_file_hpsim_irsa_conf">The HPSIM configuration file HPSIM_irsa.conf</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The configuration file <tt>/usr/local/etc/HPSIM_irsa.conf</tt>, which can be placed in advance or will be created by the <tt>HPSIM-Check-RSP-readiness.sh</tt> script (if it didn&#8217;t exist yet).</p></div>
+<div class="ulist"><div class="title">The important variables are:</div><ul>
+<li>
+<p>
+<strong>WbemUser=wbem</strong> is the non-privileged user who will be used for cimprovider queries
+</p>
+</li>
+<li>
+<p>
+<strong>mailusr=</strong> is the mail destination who will be receiving the output logging. The output is always saved locally (see further).
+</p>
+</li>
+<li>
+<p>
+<strong>SimServer=sim-server</strong> contains the fully qualified domain name of the HPSIM server (also known as the Central Managed Server).
+</p>
+</li>
+<li>
+<p>
+<strong>MaxTestDelay=0</strong> is delay variable used before sending test events to the HPSIM server (could be useful when doing lots of systems in batch). However, the default value is 0.
+</p>
+</li>
+<li>
+<p>
+<strong>dlog=/var/adm/install-logs</strong> contains the directory where the logging should be saved into.
+</p>
+</li>
+<li>
+<p>
+<strong>IUXSERVER=ignite-ux</strong> contains the fully qualified domain name of the Ignite/UX server of software depot server.
+</p>
+</li>
+<li>
+<p>
+</p>
+</li>
+<li>
+<p>
+<strong>ENCPW="6u2CMymnCznQo"</strong> is the encrypted password of the wbem account. To create a new password use the command <tt>openssl passwd -crypt</tt> and copy-paste the output in the configuration file.
+</p>
+</li>
+<li>
+<p>
+<strong>HpsmhAdminGroup="se"</strong> contains the group name of the HP System Management Homepage. The wbem account will have this as a secondary group and as such can be used to login at the HP System Management Homepage interface with administrator rights. This useful to exchange SSL certificates between HPSMH and HPSIM.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>#################################################
+# ----- Configuration file HPSIM_irsa.conf -----#
+#       Date: 01 Feb 2012                       #
+#       Updated by: Gratien D'haese             #
+#################################################
+# Configuration file is read by (if available)
+#       - HPSIM-Check-RSP-readiness.sh
+#       - HPSIM-Upgrade-RSP.sh
+#       - HPSIM-HealthCheck.sh
+#       - restart_cim_sfm.sh
+#################################################
+# Default location of this file is:
+#       /usr/local/etc/HPSIM_irsa.conf
+# but may be overruled with the '-c' argument
+#
+#################################################
+#       Variables available in this config file
+#       have default settings in each script too
+#       and may be overruled via command arguments
+#       (don't worry if conf file is not found...)
+#       Use the '-h' for help with each script
+#################################################
+
+# The WBEM user used for HP SIM purposes
+# WbemUser=wbem
+WbemUser=wbem
+
+# The mail recipients to whom an output report will
+# be send - default is none
+# mailusr="root"
+# mailusr="root,someuser@corporation.com"
+mailusr=
+
+# The HP SIM server FQDN (no default for this one!)
+# SimServer=HPSIM_FQDN
+SimServer=sim-server
+
+# The maximum Test Delay in seconds for sending
+# out a test event (only used by HPSIM-HealthCheck.sh)
+# MaxTestDelay=0
+MaxTestDelay=0
+
+# The logging directory where our log files will be kept
+# dlog=/var/adm/install-logs    (default)
+dlog=/var/adm/install-logs
+
+# The Ignite/UX or SD server where our HP-UX depots are kept
+# IUXSERVER=FQDN
+IUXSERVER=ignite-ux
+
+# The location of the base HPSIM/IRSA depots
+# baseDepo=/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+# without 11.11, 11.23 or 11.31 sub-depots names
+baseDepo=/var/opt/ignite/depots/GLOBAL/irsa
+
+# The encrypted password of the WbemUser
+# Variable only used by HPSIM-Check-RSP-readiness.sh script
+# An easy way to produce such crypt password is with "openssl passwd -crypt", or
+# HPSIM-Check-RSP-readiness.sh -p will prompt for a new password
+ENCPW="6u2CMymnCznQo"         # default password is "hpinvent" (without the double quotes)
+
+# The HP System Management Homepage Admin Group (hpsmh is default setting)
+# The WbemUser will belong to this secondary group to allow access to HP SMH
+HpsmhAdminGroup="se"</tt></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_sim_installation_and_loggings_similar_scripts">The SIM Installation and Loggings (similar) Scripts</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The scripts were developed to install, configure, upgrade and check the HPSIM IRSA related software on the HP-UX managed nodes. See it as an aid in getting these installation and configuration tasks done in a simple way. The only thing we need are the software depots which we already have installed (or copied) on our central Ignite/UX server and the first script <tt>HPSIM-Check-RSP-readiness.sh</tt> and its accompying configuration file (albeit not required to have).</p></div>
+<div class="paragraph"><p>We will discuss all the scripts in detail, but will start with the most import script and that is <tt>HPSIM-Check-RSP-readiness.sh</tt> and secondly we will discuss the configuration file <em>HPSIM_irsa.conf</em> in more detail. Afterwards, we will go over the <tt>HPSIM-Upgrade-RSP.sh</tt> script and <tt>HPSIM-Healthcheck.sh</tt> scripts. We still have one special script <tt>restart_cim_sfm.sh</tt> which will be bundle in the WBEMextras depot and which is initiated via crontab.</p></div>
+<div class="sect2">
+<h3 id="_the_hpsim_check_rsp_readiness_sh_script">The HPSIM-Check-RSP-readiness.sh script</h3>
+<div class="paragraph"><p>The easiest way to explain the HPSIM-Check-RSP-readiness.sh script is via the help output.</p></div>
+<div class="listingblock">
+<div class="title">The short usage output (<strong>-?</strong> option):</div>
+<div class="content">
+<pre><tt>./HPSIM-Check-RSP-readiness.sh -?
+Usage: HPSIM-Check-RSP-readiness.sh [-vhpi] [-u &lt;WbemUser&gt;] [-g &lt;HpsmhAdminGroup&gt;] [-d IP:path] [-m &lt;email1,email2&gt;] \
+       [-c &lt;conf file&gt;] [-s SimServer]</tt></pre>
+</div></div>
+<div class="paragraph"><p>Some important knowledge you need to understand. The HPSIM WBEM communication between the HPSIM server (also known as the Central management Server, or abbreviated CMS) and the HP-UX managed node is done in a secure way via the Secure Socket Layer (SSL) and via Secure Shell (SSH). In particular when we use SSH we preferrably use a non-privelge user (non-root) and that is where the <em>WbemUser</em> is used for (the <strong>-u</strong> option).</p></div>
+<div class="paragraph"><p>Once we start configuration part the <em>WbemUser</em> will be created (if not yet existing) with a default password (hpinvent) or use option <strong>-p</strong> to be prompted for a password.</p></div>
+<div class="paragraph"><p>Option <strong>-g</strong> might be required if you want the <em>WbemUser</em> to be added to a second group <strong>hpsmh</strong> (the HP system management homepage group) which is needed to grant the <em>WbemUser</em> administrator&#8217;s rights within the HP system management homepage interface). In some organizations the administrator&#8217;s group may be different.</p></div>
+<div class="paragraph"><p>We already know the usage output of the <tt>HPSIM-Check-RSP-readiness.sh</tt> script, but we can see more if we use the <strong>-h</strong> option instead.</p></div>
+<div class="listingblock">
+<div class="title">The help output (-h option)</div>
+<div class="content">
+<pre><tt>$ ./HPSIM-Check-RSP-readiness.sh -h
+NAME
+  HPSIM-Check-RSP-readiness.sh - Install and configure IRSS/IRSA software on HP-UX 11i systems
+
+SYNOPSIS
+  HPSIM-Check-RSP-readiness.sh [ options ]
+
+DESCRIPTION
+  This script will check the pre-requisites, install all required software
+  pieces, does the needed configuration and send/save a detailed installed
+  report. The script knows two modes (preview and installation).
+
+OPTIONS
+  -h
+        Print this man page.
+
+  -i
+        Run HPSIM-Check-RSP-readiness.sh in "installation" mode. Be careful, this will install software!
+        Default is preview mode and is harmless as nothing will be installed nor configured.
+
+  -u &lt;WbemUser&gt;
+        Non-priviledge account to use with IRSS/IRSA WBEM protocol (default wbem).
+
+  -g &lt;HpsmhAdminGroup&gt;
+        The HP System Management Homepage Admin Group (default hpsmh).
+
+  -m &lt;email1,email2...&gt;
+        When this option is used, an  email notification is sent when an error
+        occurs.  Use this option with a valid SMTP email address.
+
+  -d [IP address or FQDN of Software Depot server]:&lt;Absolute path to base depot&gt;
+        Example: -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+        The actual software depots are then located under:
+          B.11.11 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.11
+          B.11.23 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.23
+          B.11.31 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.31
+        However, -d /cdrom/rsp/pre-req is also valid where same rules apply as above.
+
+  -p
+        Prompt for a password for the WBEM user (non-priviledge user).
+        Default password is "hpinvent" (without the double quotes).
+
+  -c &lt;path/configuration file&gt;
+        Will store a configuration file as specified which can be used when we
+        run this script again. However, other scripts will benefit from this too:
+        - HPSIM-HealthCheck.sh
+        - HPSIM-Upgrade-RSP.sh
+        - restart_cim_sfm.sh
+        Default location/name is [ /usr/local/etc/HPSIM_irsa.conf ]
+
+  -s &lt;HPSIM Server&gt;
+        The HP SIM Server address (FQDN or IP address) where $(hostname) will be defined.
+
+  -v
+        Prints the version of HPSIM-Check-RSP-readiness.sh.
+
+EXAMPLES
+    HPSIM-Check-RSP-readiness.sh -d 10.4.9.76:/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+        Run HPSIM-Check-RSP-readiness.sh in preview mode only and will give a status update.
+    HPSIM-Check-RSP-readiness.sh -i
+        Run HPSIM-Check-RSP-readiness.sh in installation mode and use default values for
+        IP address of Ignite server (or SD server) and software depot path
+
+IMPLEMENTATION
+  version       Id: HPSIM-Check-RSP-readiness.sh $
+  Revision      UNKNOWN
+  Author        Gratien D'haese
+  Release Date  19-Jan-2012</tt></pre>
+</div></div>
+<div class="paragraph"><p>The <strong>-c</strong> option is used to point to a configuration file which will overrule the command arguments. If we do not use the <strong>-c</strong> the script will create a configuration file <tt>/usr/local/etc/HPSIM_irsa.conf</tt> with the arguments given or with the default values. We find it a best practice to prepare a configuration file on-front to avoid mistakes and to guarantee consistency across the different scripts. We will discuss the configuration file a bit later.</p></div>
+<div class="paragraph"><p>The <strong>-d</strong> option defines the path where to software is stored and it combines the Ignite/UX server address (FQDN or IP address) and the absolute path to the software depots (without the HP-UX operating system version number). E.g.  <tt>10.4.9.76:/var/opt/ignite/depots/GLOBAL/rsp/pre-req</tt> can be used as <tt>swlist -s 10.4.9.76:/var/opt/ignite/depots/GLOBAL/rsp/pre-req/<strong>11.11</strong></tt></p></div>
+<div class="paragraph"><p>The <strong>-m</strong> option defines the mail destination (more then one can be defined) which will get the report of the installation and configuration details.</p></div>
+<div class="paragraph"><p>The <strong>-s</strong> option defines the HPSIM server address (FQDN or IP address) which is not used in this script, but which will be recorded in the configuration file for later usage by the other scripts.</p></div>
+<div class="paragraph"><p>We can use the script with command arguments (without the <strong>-i</strong> option means "preview" mode) - see following example run on HP-UX 11.11. It we would have created a configuration file in front then the script name would have been sufficient.</p></div>
+<div class="listingblock">
+<div class="title">Preview run on HP-UX 11.11</div>
+<div class="content">
+<pre><tt>$ ./HPSIM-Check-RSP-readiness.sh -u wbem -p -m gdhaese -d ignite-ux:/var/opt/ignite/depots/GLOBAL/irsa \
+  -g se -s sim-server
+Enter the secret password for user wbem (do not forget it!)
+Password:
+Verifying - Password:
+================================================================================
+  Installation Script: HPSIM-Check-RSP-readiness.sh
+        Ignite Server: ignite-ux
+           OS Release: 11.11
+                Model: 9000/800/L2000-44
+    Installation Host: hpx172
+    Installation User: root
+    Installation Date: 2012-02-01 @ 10:47:18
+     Installation Log: /var/adm/install-logs/HPSIM-Check-RSP-readiness.2012-02-01.104718.scriptlog
+================================================================================
+ ** Running in preview mode.
+
+
+ ** HP-UX 11.11 support is OK
+ ** Patch Level is OK
+ ** Corrupt filesets - none were found - OK
+ ** ISEEPlatform was not found - OK
+ ** Current SysFaultMgmt version is OK
+ ** OpenSSL version is OK
+ ** WBEMService is OK
+ ** OnlineDiag version is OK
+ ** Stop the HP System Mgmt Homepage daemon
+ ** hpuxwsApache release is OK
+ ** hpuxws22Apache release not found - N/A
+ ** System Management Homepage version is OK
+ ** Start the HP System Mgmt Homepage daemon
+ ** No IRSA patch bundle for HP-UX 11.11 required
+ ** System Fault Management (SFM) is OK
+ ** WBEMMgmtBundle is not required on 11.11 - N/A
+ ** Install HP Remote Support Advanced Configuration Collector
+ ** nParProvider version is OK
+ ** vParProvider version is OK
+ ** (Re-)Configure all CIM Providers installed on this system
+ ** To view or run the installation script - check /tmp/RSP_readiness_hpx172.install
+ ** To view or run the config script - check /tmp/RSP_readiness_hpx172.config
+================================================================================
+ ** There were no errors detected.
+================================================================================</tt></pre>
+</div></div>
+<div class="paragraph"><p>There are a few points to know about this script before we dig deeper. The <tt>HPSIM-Check-RSP-readiness.sh</tt> script knowns two modes of operations, a preview and an installation mode. The preview mode, which is the default, will not install nor configure the HP-UX managed node in anyway. It will create two other scripts</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<tt>/tmp/RSP_readiness_$(hostname).install</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>/tmp/RSP_readiness_$(hostname).config</tt>
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The above mentioned scripts can be viewed and analyzed if the proposed solution are ok.
+The <tt>/tmp/RSP_readiness_$(hostname).install</tt> script will and shall be different each time you run (or re-run) the <tt>HPSIM-Check-RSP-readiness.sh</tt>. We can see the content of <tt>/tmp/RSP_readiness_$(hostname).install</tt> with the <tt>cat</tt> command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ cat RSP_readiness_hpx172.install
+#!/usr/bin/ksh
+{
+######### Action Script for RSP Readiness
+######### for system hpx172
+######### status of Wed Feb  1 15:57:35 MET 2012
+## all actions run in "preview" mode!!
+echo \# Test 1 : HP-UX B.11.11 supported - OK
+echo \# Test 2 : Patch Level - OK
+echo \# Test 3 : Corrupt filesets found - N/A
+echo \# Test 4 : ISEEPlatform - OK
+echo \# Test 5 : Unsupported System Fault Mgt. \(SFM\) found - OK
+echo \# Test 6 : OpenSSL - OK
+echo \# Test 7 : WBEMservices - OK
+echo \# Test 8 : OnlineDiag - OK
+echo \# Test 9 : Stop System Mgmt Homepage
+ /sbin/init.d/hpsmh stop
+echo \# Test 10 : Apache v2.0 - OK
+echo \# Test 11 : Apache v2.2 - N/A
+echo \# Test 12 : SysMgmtWeb - OK
+echo \# Test 13 : Start System Mgmt Homepage
+ /sbin/init.d/hpsmh start
+echo \# Test 14 : HP SIM/IRSA Patches - OK
+echo \# Test 15 : System Fault Mgt - OK
+ /usr/sbin/swlist -l fileset -a state SysFaultMgmt | grep -v -E '\#|configured' | grep 'installed'
+ if [ $? -eq 0 ]; then
+ /usr/sbin/swconfig -vp -x mount_all_filesystems=false -x reconfigure=true SysFaultMgmt
+ fi
+echo \# Test 16 : WBEMMgmtBundle - N/A
+echo \# Test 17 : Remote Support Adv Conf Collector
+ /usr/sbin/swinstall -vp -x enforce_dependencies=false -x mount_all_filesystems=false -s ingnite-ux:/var/opt/ignite/depots/GLOBAL/irsa/11.11 RS-ACC
+echo \# Test 18 : nParProvider - OK
+echo \# Test 19 : vParProvider - OK
+echo \# Test 20 : WBEMextras
+# Install WBEMextras
+ /usr/sbin/swinstall -vp -x reinstall=false -x mount_all_filesystems=false -s ignite-ux:/var/opt/ignite/depots/GLOBAL/irsa/11.11 WBEMextras
+echo \# Test 21 : Configure the CIM Providers
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false FCProvider
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false FileSysProvider
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false IOTreeIndication
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false IOTreeProvider
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false LVMProvider
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false SCSIProvider
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false UtilProvider
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false WBEMP-LAN-00
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false nParProvider
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false vParProvider
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false CM-Provider-MOF
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false OPS-Provider-MOF
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false WBEMP-LAN
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false SW-DIST
+ /usr/sbin/swconfig -vp -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false SFM-CORE
+} &gt; /var/adm/install-logs/RSP_readiness_hpx172.inst-install.scriptlog 2&gt;&amp;1</tt></pre>
+</div></div>
+<div class="paragraph"><p>The second created script is <tt>/tmp/RSP_readiness_$(hostname).config</tt> which contains the configuration part for WBEM and System Fault Management (SFM).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ cat RSP_readiness_hpx172.config
+#!/usr/bin/ksh
+{
+######### Config Script for RSP Readiness
+######### for system hpx172
+######### created on Wed Feb  1 14:07:52 MET 2012
+export PATH=/usr/sbin:/usr/bin:/opt/samba/bin:/opt/ansic/bin:/usr/ccs/bin:/usr/contrib/bin:/opt/hparray/bin:\
+/opt/nettladm/bin:/opt/upgrade/bin:/opt/fcms/bin:/opt/pd/bin:/opt/resmon/bin:/opt/gnome/bin:/opt/perf/bin:\
+/usr/bin/X11:/usr/contrib/bin/X11:/opt/graphics/common/bin:/opt/prm/bin:/usr/sbin/diag/contrib:/opt/mx/bin:\
+/opt/sec_mgmt/bastille/bin:/opt/ignite/bin:/usr/local/bin:/usr/sbin:/opt/ssh/bin:/opt/OV/bin/OpC:/opt/OV/bin:\
+/opt/hpnpl//bin:/opt/mozilla:/opt/hpsmh/bin:/opt/langtools/bin:/opt/imake/bin:/opt/sfm/bin:/opt/wbem/bin:\
+/opt/wbem/sbin:/opt/cfg2html:/usr/sbin:/sbin:/sbin:/home/root:/usr/bin:/usr/sbin:/sbin:/opt/wbem/bin:/opt/wbem/sbin
+# swconfig EMS-Core - need to find the latest release to configure (move from install to here)
+r=`swlist -l product | grep -i EMS-core | tail -1 | awk '{print $2}'`
+swconfig -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false EMS-Core,r=$r
+echo
+# List of active CIM Providers
+echo \# List of active CIM Providers
+cimprovider -l -s
+echo
+# Check Event Monitoring
+echo \# Check Event Monitoring
+echo q | /etc/opt/resmon/lbin/monconfig | grep -E 'EMS|STM'
+# Hardware monitors always use EMS
+echo \# Hardware monitors always use EMS
+echo
+# check special wbem account (wbem) for monitoring with HP SIM
+# grep ^wbem /etc/passwd
+echo \# grep ^wbem /etc/passwd
+grep "^wbem" /etc/passwd 2&gt;&amp;1
+[ $? -ne 0 ] &amp;&amp; {
+        # Account wbem does not exist - creating one
+        /usr/sbin/useradd -g users -G se wbem
+        /usr/sam/lbin/usermod.sam -F -p ARbwd5UKVpJQs wbem
+        /usr/lbin/modprpw -m exptm=0,lftm=0 wbem
+        /usr/lbin/modprpw -v wbem
+        }
+echo
+# Print current CIM configuration
+echo \# Print current CIM configuration
+cimconfig -l -p
+cimconfig -s enableSubscriptionsForNonprivilegedUsers=true -p
+cimconfig -s enableNamespaceAuthorization=true -p
+echo
+# Stop cimserver
+echo \# Stop cimserver
+cimserver -s
+echo \# Add secondary se group to the wbem account
+/usr/sbin/usermod -G se wbem
+echo
+# Start cimserver
+echo \# Start cimserver
+cimserver
+echo
+# Check cimconfig
+echo \# Check cimconfig
+cimconfig -l -c
+echo
+# Add the needed CIM authorizations
+echo \# Add the needed CIM authorizations
+cimauth -l | grep wbem | grep -q "root/cimv2" || cimauth -a -u wbem -n root/cimv2 -R -W
+cimauth -l | grep wbem | grep -q "root/PG_InterOp" || cimauth -a -u wbem -n root/PG_InterOp -R -W
+cimauth -l | grep wbem | grep -q "root/PG_Internal" || cimauth -a -u wbem -n root/PG_Internal -R -W
+cimauth -l | grep wbem | grep -q "root/cimv2/npar" || cimauth -a -u wbem -n root/cimv2/npar -R -W
+cimauth -l | grep wbem | grep -q "root/cimv2/vpar" || cimauth -a -u wbem -n root/cimv2/vpar -R -W
+cimauth -l | grep wbem | grep -q "root/cimv2/hpvm" || cimauth -a -u wbem -n root/cimv2/hpvm -R -W
+# List the CIM authorizations
+echo \# List the CIM authorizations
+cimauth -l
+echo
+ls -l /var/opt/wbem/repository
+# Check if SysFaultMgt processes are running:
+echo \# Check if SysFaultMgt processes are running:
+ps -ef | grep sfmdb | grep -v grep
+echo
+# Set System Management Homepage to start on boot and add se group to authorized users:
+echo \# Set System Management Homepage to start on boot and add se group to authorized users:
+/opt/hpsmh/lbin/hpsmh stop
+cat &gt;/opt/hpsmh/conf.common/smhpd.xml &lt;&lt;EOF
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;system-management-homepage&gt;
+&lt;admin-group&gt;se&lt;/admin-group&gt;
+&lt;operator-group&gt;&lt;/operator-group&gt;
+&lt;user-group&gt;&lt;/user-group&gt;
+&lt;allow-default-os-admin&gt;True&lt;/allow-default-os-admin&gt;
+&lt;anonymous-access&gt;False&lt;/anonymous-access&gt;
+&lt;localaccess-enabled&gt;False&lt;/localaccess-enabled&gt;
+&lt;localaccess-type&gt;Anonymous&lt;/localaccess-type&gt;
+&lt;trustmode&gt;TrustByCert&lt;/trustmode&gt;
+&lt;xenamelist&gt;&lt;/xenamelist&gt;
+&lt;ip-restricted-logins&gt;False&lt;/ip-restricted-logins&gt;
+&lt;ip-restricted-include&gt;&lt;/ip-restricted-include&gt;
+&lt;ip-restricted-exclude&gt;&lt;/ip-restricted-exclude&gt;
+&lt;ip-binding&gt;False&lt;/ip-binding&gt;
+&lt;ip-binding-list&gt;&lt;/ip-binding-list&gt;
+&lt;/system-management-homepage&gt;
+EOF
+chmod 444 /opt/hpsmh/conf.common/smhpd.xml
+/opt/hpsmh/bin/smhstartconfig -a off -b on
+/opt/hpsmh/lbin/hpsmh start
+/opt/hpsmh/bin/smhstartconfig
+
+# writing the ConfFile if needed
+if [ ! -f /usr/local/etc/HPSIM_irsa.conf ]; then
+echo \# Writing a fresh /usr/local/etc/HPSIM_irsa.conf file, which contains:
+echo
+[ ! -d /usr/local/etc ] &amp;&amp; mkdir -p -m 755 /usr/local/etc
+cat &gt; /usr/local/etc/HPSIM_irsa.conf &lt;&lt;EOF
+#################################################
+# ----- Configuration file HPSIM_irsa.conf -----#
+#       Date: 01 Feb 2012                       #
+#       Updated by: Gratien D'haese             #
+#################################################
+# Configuration file is read by (if available)
+#       - HPSIM-Check-RSP-readiness.sh
+#       - HPSIM-Upgrade-RSP.sh
+#       - HPSIM-HealthCheck.sh
+#       - restart_cim_sfm.sh
+#################################################
+# Default location of this file is:
+#       /usr/local/etc/HPSIM_irsa.conf
+# but may be overruled with the '-c' argument
+#
+#################################################
+#       Variables available in this config file
+#       have default settings in each script too
+#       and may be overruled via command arguments
+#       (don't worry if conf file is not found...)
+#       Use the '-h' for help with each script
+#################################################
+
+# The WBEM user used for HP SIM purposes
+# WbemUser=wbem
+WbemUser=wbem
+
+# The mail recipients to whom an output report will
+# be send - default is none
+# mailusr="root"
+# mailusr="root,someuser@corporation.com"
+mailusr=gdhaese
+
+# The HP SIM server FQDN (no default for this one!)
+# SimServer=HPSIM_FQDN
+SimServer=sim-server
+
+# The maximum Test Delay in seconds for sending
+# out a test event (only used by HPSIM-HealthCheck.sh)
+# MaxTestDelay=0
+MaxTestDelay=0
+
+# The logging directory where our log files will be kept
+# dlog=/var/adm/install-logs    (default)
+dlog=/var/adm/install-logs
+
+# The Ignite/UX or SD server where our HP-UX depots are kept
+# IUXSERVER=FQDN
+IUXSERVER=ignite-ux
+
+# The location of the base HPSIM/IRSA depots
+# baseDepo=/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+# without 11.11, 11.23 or 11.31 sub-depots names
+baseDepo=/var/opt/ignite/depots/GLOBAL/irsa
+
+# The encrypted password of the WbemUser
+# Variable only used by HPSIM-Check-RSP-readiness.sh script
+# An easy way to produce such crypt password is with "openssl passwd -crypt", or
+# HPSIM-Check-RSP-readiness.sh -p will prompt for a new password
+# ENCPW="6u2CMymnCznQo"         # default password is "hpinvent" (without the double quotes)
+ENCPW="ARbwd5UKVpJQs"
+
+# The HP System Management Homepage Admin Group (hpsmh is default setting)
+# The WbemUser will belong to this secondary group to allow access to HP SMH
+HpsmhAdminGroup="se"
+EOF
+cat /usr/local/etc/HPSIM_irsa.conf
+
+fi
+} &gt; /var/adm/install-logs/RSP_readiness_hpx172.con-config.scriptlog 2&gt;&amp;1</tt></pre>
+</div></div>
+<div class="paragraph"><p>If you read through the config script you will notice that the <tt>/usr/local/etc/HPSIM_irsa.conf</tt> will be created if did not yet exists.
+Furthermore, in preview mode, the two scripts <tt>/tmp/RSP_readiness_$(hostname).install</tt> and <tt>/tmp/RSP_readiness_$(hostname).config</tt>, will not be executed automatically. In installation mode these will be executed automatically. So, after running <tt>HPSIM-Check-RSP-readiness.sh</tt> in preview mode (without <strong>-i</strong> option) the choice is yours to run the two home-brew scripts. E.g. to evaluate does it make sense or not?</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ /tmp/RSP_readiness_hpx172.install
+$ cat /var/adm/install-logs/RSP_readiness_hpx172.inst-install.scriptlog
+# Test 1 : HP-UX B.11.11 supported - OK
+# Test 2 : Patch Level - OK
+# Test 3 : Corrupt filesets found - N/A
+# Test 4 : ISEEPlatform - OK
+# Test 5 : Unsupported System Fault Mgt. (SFM) found - OK
+# Test 6 : OpenSSL - OK
+# Test 7 : WBEMservices - OK
+# Test 8 : OnlineDiag - OK
+# Test 9 : Stop System Mgmt Homepage
+The System Management HomePage server is already stopped.
+
+# Test 10 : Apache v2.0 - OK
+# Test 11 : Apache v2.2 - N/A
+# Test 12 : SysMgmtWeb - OK
+# Test 13 : Start System Mgmt Homepage
+The System Management HomePage server has been started successfully.
+The System Management HomePage timeout monitor is currently disabled.
+# Test 14 : HP SIM/IRSA Patches - OK
+# Test 15 : System Fault Mgt - OK
+# Test 16 : WBEMMgmtBundle - N/A
+# Test 17 : Remote Support Adv Conf Collector
+...</tt></pre>
+</div></div>
+<div class="paragraph"><div class="title">Installation run on HP-UX 11.11</div><p>When we feel confident that no additional patches are required (that require a reboot - Test 2), and that there are no corrupt filesets on your system present (before installing new software it is better to start with a healhty system - Test 3) we may re-run the <tt>HPSIM-Check-RSP-readiness.sh</tt> script, but now with the <strong>-i</strong> option (installation mode):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ ./HPSIM-Check-RSP-readiness.sh -u wbem -p -m gdhaese -d ignite-ux:/var/opt/ignite/depots/GLOBAL/irsa \
+  -g se -s sim-server -i
+Enter the secret password for user wbem (do not forget it!)
+Password:
+Verifying - Password:
+================================================================================
+  Installation Script: HPSIM-Check-RSP-readiness.sh
+        Ignite Server: ignite-ux
+           OS Release: 11.11
+                Model: 9000/800/L2000-44
+    Installation Host: hpx172
+    Installation User: root
+    Installation Date: 2012-02-03 @ 11:26:22
+     Installation Log: /var/adm/install-logs/HPSIM-Check-RSP-readiness.2012-02-03.112622.scriptlog
+================================================================================
+ ** Running installation mode!
+
+
+ ** HP-UX 11.11 support is OK
+ ** Patch Level is OK
+ ** Corrupt filesets - none were found - OK
+ ** ISEEPlatform was not found - OK
+ ** Current SysFaultMgmt version is OK
+ ** OpenSSL version is OK
+ ** WBEMService is OK
+ ** OnlineDiag version is OK
+ ** Stop the HP System Mgmt Homepage daemon
+ ** hpuxwsApache release is OK
+ ** hpuxws22Apache release not found - N/A
+ ** System Management Homepage version is OK
+ ** Start the HP System Mgmt Homepage daemon
+ ** No IRSA patch bundle for HP-UX 11.11 required
+ ** System Fault Management (SFM) is OK
+ ** WBEMMgmtBundle is not required on 11.11 - N/A
+ ** Install HP Remote Support Advanced Configuration Collector
+ ** nParProvider version is OK
+ ** vParProvider version is OK
+ ** (Re-)Configure all CIM Providers installed on this system
+ ** Running /tmp/RSP_readiness_hpx172.install...
+ ** Analyzing the install log file for errors
+==&gt; ERROR:   "hpx172:/":  1 configure or unconfigure scripts failed.
+==&gt; ERROR:   More information may be found in the agent logfile using the
+==&gt; Run command "swjob -a log hpx172-1982 @ hpx172:/".
+=======  02/03/12 11:53:38 MET  BEGIN configure AGENT SESSION
+         (pid=5905) (jobid=hpx172-1982)
+
+       * Agent session started for user "root@hpx172". (pid=5905)
+
+       * Beginning Analysis Phase.
+       * Target:           hpx172:/
+       * Target logfile:   hpx172:/var/adm/sw/swagent.log
+       * Reading source for file information.
+
+       * Summary of Analysis Phase:
+       * 21 of 21 filesets had no Errors or Warnings.
+       * The Analysis Phase succeeded.
+
+       * Beginning the Configure Execution Phase.
+       * Filesets:         21
+       * Configuring EMT...
+       * Creating the EMT database...
+ERROR:   Failed to create the EMT database.
+ERROR:   Could not install the EMT database. EMT configure failed.
+NOTE:    EVWEB install failed.
+NOTE:    Registering of SFM Provider Module.
+NOTE:    SFM Provider Module registration completed.
+       * Running config clean command /usr/lbin/sw/config_clean.
+
+       * Summary of Execution Phase:
+ERROR:       Installed     SFM-CORE.EVWEB_COREPA,l=/,r=A.04.04.02
+ERROR:   1 of 21 filesets had Errors.
+       * 20 of 21 filesets had no Errors or Warnings.
+ERROR:   The Execution Phase had errors.  See the above output for
+         details.
+
+
+=======  02/03/12 11:56:57 MET  END configure AGENT SESSION (pid=5905)
+         (jobid=hpx172-1982)
+ ** Running /tmp/RSP_readiness_hpx172.config...
+ ** Analyzing the config log file for errors
+ ** No errors found in config log file.
+================================================================================
+ ** There were several errors detected (see details above or in the log files)
+================================================================================</tt></pre>
+</div></div>
+<div class="paragraph"><p>Hum, an error occured (<em>Failed to create the EMT database</em>), which means that the SFM database was not populated correctly (in our case because the database was probably not stopped at the moment of upgrade). This is a good oppertunity to introduce the HPSIM health check script <tt>/usr/local/bin/HPSIM-HealthCheck.sh</tt>. We can just run without additional parameters, because the configuration file <em>/usr/local/etc/HPSIM_irsa.conf</em> was created during the execution of script <tt>HPSIM-Check-RSP-readiness.sh</tt> in installation mode (option <strong>-i</strong>).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_the_usr_local_bin_hpsim_healthcheck_sh_script">The /usr/local/bin/HPSIM-HealthCheck.sh script</h3>
+<div class="paragraph"><p>The purpose of the <tt>HPSIM-HealthCheck.sh</tt> script is to verify if WBEM related software components are properly configured, and to check some security related issues. Furthermore, it also checks the configuration part of HPSIM at the HP-UX managed node and report the errors, if any. It will send a test event to HPSIM server and beyond via the IRSA plug-in (at the HPSIM server) to HP back-end, but only if it finds valid WBEM/WEBES subscriptions. To verify if the test event arrived you need to login on the HPSIM console and check the events tab of system you&#8217;re testing (in this particular case hpx172).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ /usr/local/bin/HPSIM-HealthCheck.sh
+  -&gt; Reading configuration file /usr/local/etc/HPSIM_irsa.conf
+ --------------------------------------------------------------------------------
+               Script: HPSIM-HealthCheck.sh
+         Managed Node: hpx172
+ System Serial Number: USA000000
+       Executing User: root
+        HP SIM Server: sim-server
+         WBEM account: wbem
+     Mail Destination: gdhaese
+                 Date: Fri Feb  3 13:17:18 MET 2012
+                  Log: /var/adm/log/HPSIM-HealthCheck.scriptlog
+ --------------------------------------------------------------------------------
+
+  ** System hpx172 runs HP-UX B.11.11                                                : [  OK  ]
+  ** SysFaultMgmt (A.04.04.02.01) is properly installed                              : [  OK  ]
+  ** WBEMSvcs (A.02.07.06) is properly installed                                     : [  OK  ]
+  ** Older filesets may jeopardize proper working                                    : [FAILED]
+ --------------------------------------------------------------------------------
+  -&gt; WARNING: Found some older filesets - please investigate (it may be OK)
+openssl         /1.0.0e/A.00.09.08s.001/
+SysMgmtHomepage         /A.2.2.9.2/A.2.2.9.3.1/
+ --------------------------------------------------------------------------------
+
+  ** EMS Monitors ( A.04.20.11.05 ) are enabled                                      : [  OK  ]
+  ** Directory permissions of /opt/hpsmh (555)                                       : [  OK  ]
+  ** Directory permissions of /etc/opt/hp/sslshare (555)                             : [  OK  ]
+  ** File permissions of /stand/bootconf (644)                                       : [  OK  ]
+  ** File permissions of /etc/resolv.conf (644)                                      : [  OK  ]
+  ** File permissions of /var/opt/wbem/cimserver_current.conf (644)                  : [  OK  ]
+  ** Check integrity of file /etc/pam.conf                                           : [  OK  ]
+  ** A non-privileged user can login via ssh                                         : [  OK  ]
+  ** HP System Mgmt Homepage is running                                              : [  OK  ]
+  ** The "wbem" user exists and has a valid password                                 : [  OK  ]
+  ** The "wbem" user is authorized to do CIM work                                    : [  OK  ]
+  ** The CIMON port 5989 is in LISTEN mode                                           : [  OK  ]
+  ** All CIM Providers are enabled and usable                                        : [FAILED]
+ --------------------------------------------------------------------------------
+  -&gt; WARNING: SFMProviderModule                       Stopped
+  -&gt;  when "Degraded" then disbale/enable the povider, e.g.
+  -&gt;          cimprovider -d -m SFMProviderModule
+  -&gt;          cimprovider -e -m SFMProviderModule
+ --------------------------------------------------------------------------------
+  ** Is enable Subscriptions For Nonprivileged Users "true"                          : [  OK  ]
+  ** The /var file system is still below 90% usage                                   : [  OK  ]
+  ** HP SIM Server sim-server is reachable                                           : [  OK  ]
+  ** The WEBES port on sim-server is accepting a SSL connection                      : [  OK  ]
+  ** Valid HPSIM subscription for system hpx172                                      : [  OK  ]
+  ** Valid HPWEBES subscription for system hpx172                                    : [  OK  ]
+  ** Sending a test event (delay 0 seconds)                                          : [  OK  ]
+ --------------------------------------------------------------------------------
+  -&gt; Login with your admin account on the HP SIM server sim-server
+  -&gt; and check if for system hpx172 a critical (type 4) event arrived
+ --------------------------------------------------------------------------------
+
+  ** List of external HP SIM/WEBES subscription for system hpx172                    : [  OK  ]
+ --------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------
+
+  ** List most recent events for system hpx172                                       : [  OK  ]
+ --------------------------------------------------------------------------------
+
+An error occured while executing the request
+ --------------------------------------------------------------------------------
+
+  ** Display relevant cimserver messages of today                                    : [  OK  ]
+ --------------------------------------------------------------------------------
+Feb  3 11:41:53 hpx172 cimserver[23202]: PGS10213: Provider (HPUXFCHBAIndicationProvider) is no
+longer serving subscription (root/cimv2 HP_General Filter@1_V1, root/cimv2 localhost/CIMListener
+/EMArchiveConsumer) in namespace root/cimv2.</tt></pre>
+</div></div>
+<div class="paragraph"><p>Above output proofs the finding we saw during the installation (or upgrade) of System Fault Management software which failed to create the EMT database as the SFMProviderModule is not running. Also, pay attention to the section <em>List most recent events for system hpx172</em> as the output returned an error ("An error occured while executing the request"). To remediaze this we can do different things, but the easiest way it running the <tt>/usr/local/bin/HPSIM-Upgrade-RSP.sh</tt></p></div>
+</div>
+<div class="sect2">
+<h3 id="_the_usr_local_bin_hpsim_upgrade_rsp_sh_script">The /usr/local/bin/HPSIM-Upgrade-RSP.sh script</h3>
+<div class="paragraph"><p>The purpose of the <tt>HPSIM-Upgrade-RSP.sh</tt> script to upgrade and install missing (new) components at any time, but it can also be used to fix issues introduced by the <tt>HPSIM-Check-RSP-readiness.sh</tt> script as it will try to re-configure failed software (before and after any software installation). The script has also two modes (preview and installation), and a help is available (option <strong>-h</strong> which is very similar to the <tt>HPSIM-Check-RSP-readiness.sh</tt> script). However, only the option <strong>-i</strong> is required as we have the configuration file (<tt>/usr/local/etc/HPSIM_irsa.conf</tt>) in place.</p></div>
+<div class="paragraph"><p>The output is like:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ ./HPSIM-Upgrade-RSP.sh -i
+ ** Reading configuration file /usr/local/etc/HPSIM_irsa.conf
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  Installation Script: HPSIM-Upgrade-RSP.sh
+        Ignite Server: ignite-ux
+           OS Release: 11.11
+                Model: 9000/800/L2000-44
+    Installation Host: hpx172
+    Installation User: root
+    Installation Date: 2012-02-03 @ 15:17:47
+     Installation Log: /var/adm/install-logs/HPSIM-Upgrade-RSP.2012-02-03.151747.scriptlog
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ ** Running installation mode!
+
+
+
+ ** Before we start check the software status of installed software:
+ ** All software is properly configured.
+ -----------------------------------------------------------------------------------------------
+  ** Bundle B9073BA (HP-UX iCOD Instant Capacity (iCAP)) was not found on this system: [ SKIP ]
+  ** Bundle EventMonitoring with version A.04.20.11.05 is up-to-date                 : [  N/A ]
+  ** Bundle FCProvider with version B.11.11.08 is up-to-date                         : [  N/A ]
+  ** Bundle FileSysProvider with version B.11.11.01 is up-to-date                    : [  N/A ]
+  ** Bundle IOTreeIndication with version B.11.11.0712 is up-to-date                 : [  N/A ]
+  ** Bundle IOTreeProvider with version B.11.11.06 is up-to-date                     : [  N/A ]
+  ** Bundle LVMProvider with version B.11.11.05 is up-to-date                        : [  N/A ]
+  ** Bundle OnlineDiag with version B.11.11.21.07 is up-to-date                      : [  N/A ]
+  ** Bundle OpenSSL with version A.00.09.08s.001 is up-to-date                       : [  N/A ]
+  ** Bundle RS-ACC with version A.05.50.26.007 is up-to-date                         : [  N/A ]
+  ** Bundle SCSIProvider with version B.11.11.07 is up-to-date                       : [  N/A ]
+  ** Bundle SysFaultMgmt with version A.04.04.02.01 is up-to-date                    : [  N/A ]
+  ** Bundle SysMgmtWeb with version A.2.2.9.3.1 is up-to-date                        : [  N/A ]
+  ** Bundle UtilProvider with version A.01.08.05.02 is up-to-date                    : [  N/A ]
+  ** Bundle WBEMP-LAN-00 with version B.11.11.0706 is up-to-date                     : [  N/A ]
+  ** Bundle WBEMP-LAN-TEST-00 with version B.11.11.03 is up-to-date                  : [  N/A ]
+  ** Bundle WBEMSvcs with version A.02.07.06 is up-to-date                           : [  N/A ]
+  ** Bundle hpuxwsApache with version B.2.0.59.16 is up-to-date                      : [  N/A ]
+  ** Bundle nParProvider with version B.12.02.07.03 is up-to-date                    : [  N/A ]
+  ** Bundle vParProvider with version B.11.11.01.06 is up-to-date                    : [  N/A ]
+  ** Bundle EMS-KRMonitor with version A.11.11.05 is up-to-date                      : [  N/A ]
+  ** Bundle WBEMextras (HP WBEM Extras for HP-UX) is missing on on this system       : [  OK  ]
+ ** Fri Feb  3 15:18:08 MET 2012 - Installing WBEMextras A.01.00.04 HP WBEM Extras for HP-UX
+
+=======  02/03/12 15:18:08 MET  BEGIN swinstall SESSION
+         (non-interactive) (jobid=hpx172-1991)
+
+       * Session started for user "root@hpx172".
+
+       * Beginning Selection
+       * Target connection succeeded for "hpx172:/".
+       * Source connection succeeded for
+         "ignite-ux:/var/opt/ignite/depots/GLOBAL/irsa/11.11".
+
+       * Source:
+         ignite-ux:/var/opt/ignite/depots/GLOBAL/irsa/11.11
+
+       * Targets:                hpx172:/
+       * Software selections:
+             WBEMextras.HPSIM_IRSA_scripts,r=A.01.00.04,a=S800_HPUX_11,v=GPL,fr=A.01.00.04,fa=S800_HPUX_11
+             WBEMextras.Restart_cim_sfm,r=A.01.00.04,a=S800_HPUX_11,v=GPL,fr=A.01.00.04,fa=S800_HPUX_11
+       * Selection succeeded.
+
+
+       * Beginning Analysis and Execution
+       * Session selections have been saved in the file
+         "/.root/.sw/sessions/swinstall.last".
+       * "hpx172:/":  There will be no attempt to mount filesystems
+         that appear in the filesystem table.
+       * The execution phase succeeded for "hpx172:/".
+       * Analysis and Execution succeeded.
+
+
+NOTE:    More information may be found in the agent logfile using the
+         command "swjob -a log hpx172-1991 @ hpx172:/".
+
+=======  02/03/12 15:19:30 MET  END swinstall SESSION (non-interactive)
+         (jobid=hpx172-1991)
+
+ ** No errors detected during installation of WBEMextras
+ -----------------------------------------------------------------------------------------------
+
+ ** Are there software components which are still in 'installed' state?
+ ** All software is properly configured.
+ -----------------------------------------------------------------------------------------------
+
+ ** The active cimproviders are:
+MODULE                                  STATUS
+OperatingSystemModule                   OK
+ComputerSystemModule                    OK
+ProcessModule                           OK
+IPProviderModule                        OK
+HP_iCAPProviderModule                   OK
+HP_GiCAPProviderModule                  OK
+SDProviderModule                        OK
+HPUXFCCSProviderModule                  OK
+HPUXFCIndicationProviderModule          OK
+HPUXFCProviderModule                    OK
+FSProviderModule                        OK
+HPUXIOTreeIndicationProviderModule      OK
+IOTreeModule                            OK
+HPUXLVMProviderModule                   OK
+HPUXSCSICSProviderModule                OK
+HPUXSCSIProviderModule                  OK
+HP_UtilizationProviderModule            OK
+HP_NParProviderModule                   OK
+HP_VParProviderModule                   OK
+HPUXLANProviderModule                   OK
+HPUXLANCSProviderModule                 OK
+HPUXLANIndicationProviderModule         OK
+EMSHAProviderModule                     OK
+SFMProviderModule                       OK
+
+ ** Send a test event (simulate memory or cpu failures):
+Contacting Registrar on hpx172
+
+NAME:   /system/events/memory
+DESCRIPTION:    System Memory Monitor
+
+This resource monitors events for system memory.  Event monitoring
+requests are created using the Monitoring Request Manager.  Monitoring
+requests to detect changes in device status are created using the
+Peripheral Status Monitor (psmmon(1m)) and Event Monitoring Service (EMS).
+
+For more information see the monitor man page, (dm_memory(1m)).
+TYPE:   /system/events/memory is a Resource Class.
+
+There is one resource configured below /system/events/memory:
+Resource Class
+        /system/events/memory/8
+
+Finding resource name associated with monitor dm_memory.
+
+Found resource name /system/events/memory
+associated with monitor dm_memory.
+
+Creating test file /var/stm/config/tools/monitor/dm_memory.test
+for monitor dm_memory.
+
+Performing resls on resource name /system/events/memory
+for monitor dm_memory to cause generation of test event.
+###############################################################################################
+ ** There were no errors detected.
+###############################################################################################</tt></pre>
+</div></div>
+<div class="paragraph"><p>After, the upgrade we better re-run the <tt>HPSIM-HealthCheck.sh</tt> script again to verify if all is fine.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_the_wbemextras_hp_wbem_extras_for_hp_ux_depot">The WBEMextras (HP WBEM Extras for HP-UX) depot</h3>
+<div class="paragraph"><p>The WBEMextras software depot contains the following scripts which we already know:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<tt>/usr/local/bin/HPSIM-HealthCheck.sh</tt>
+</p>
+</li>
+<li>
+<p>
+<tt>/usr/local/bin/HPSIM-Upgrade-RSP.sh</tt>
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>and, one new script <tt>/usr/local/bin/restart_cim_sfm.sh</tt> which has a correseponding crontab entry:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>6,21,36,51 * * * * /usr/local/bin/restart_cim_sfm.sh  &gt; /dev/null 2&gt;&amp;1</tt></pre>
+</div></div>
+<div class="paragraph"><p>The script <tt>/usr/local/bin/restart_cim_sfm.sh</tt> will do some checks on a regular basis of:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+is the <em>WbemUser</em> created? If not, then this HP-UX managed node cannot properly be discovered by the HPSIM server, and we assume that we did not yet run the script <tt>HPSIM-Check-RSP-readiness.sh</tt>
+</p>
+</li>
+<li>
+<p>
+is the <em>WbemUser</em> locked or not? If locked then unlock the user account, otherwise, the HPSIM server cannot do discovery and other inventory sweeps on the HP-UX managed node.
+</p>
+</li>
+<li>
+<p>
+is the <em>WbemUser</em> expired? If yes, then we need to reset this account.
+</p>
+</li>
+<li>
+<p>
+is the cimserver process running on the HP-UX managed node? If not, then start it up. If yes, check if the process runs longer then 1 day, then force a restart to prevent CPU bottlenecks, unnneeded memory consumption.
+</p>
+</li>
+<li>
+<p>
+Enable any disbaled cim provider agent process we encounter, unless the status is <em>stopped</em> then we do not enable it again (as most likely we stopped it on purpose)
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>From experience we know that the <tt>restart_cim_sfm.sh</tt> script increased the stability of the cimserver and cim provider agent processes on the HP-UX managed node a lot.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_frequently_asked_question_faq">Frequently Asked Question (FAQ)</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+ERROR: System <em>ignite-ux</em> is not reachable via ping from <em>hpx172</em>
+</dt>
+<dd>
+<p>
+        Make sure <em>ignite-ux</em> is a valid hostname and it must be reachable, otherwise, it makes no sense to use this script. Be aware, if we install from the localhost the Ignite/ux server may be named <em>localhost</em>
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_references">References</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The references used in this document are listed below.</p></div>
+<div class="paragraph"><p><a id="x1"></a> <a href="http://www.software.hp.com">HP Software Depot Download site</a></p></div>
+<div class="paragraph"><p><a id="x2"></a> <a href="https://h20566.www2.hp.com/portal/site/hpsc/public/">HP Support Center</a></p></div>
+<div class="paragraph"><p><a id="x3"></a> <a href="http://bizsupport2.austin.hp.com/bc/docs/support/SupportManual/c03052695/c03052695.pdf">HP IRSA Configuration Guide</a></p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2012-03-28 15:59:24 CEST
+</div>
+</div>
+</body>
+</html>

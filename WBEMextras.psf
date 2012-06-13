@@ -1,0 +1,83 @@
+################################################################################
+# Version Info : @(#)WBEMextras.psf      1.3   04/Apr/2012
+################################################################################
+
+# Version history:
+# 1.0: gdhaese1 - 03/Feb/2010 - initial WBEMextras package
+# 1.1: gdhaese1 - 13/Sep/2010 - added architecture label
+# 1.2: gdhaese1 - 11/Mar/2011 - updated restart_cim_sfm.sh script
+# 1.3: gdhaese1 - 04/Apr/2012 - added new style of IRSA scripts
+
+    tag WBEMextras
+    title HP WBEM Extras for HP-UX
+    description HP WBEM Extras for HP-UX
+    copyright (c)Copyright GPL v3
+    number A.01.00.04
+
+product
+    tag WBEMextras
+    title HP WBEM Extras for HP-UX
+    revision A.01.00.04
+    description  HP WBEM Extras for HP-UX
+    copyright (c)Copyright GPL v3
+    architecture HP-UX_B.11_32/64
+    machine_type *
+    os_name HP-UX
+    os_release ?.11.*
+    os_version *
+    directory /usr/local/bin
+    is_locatable false
+    is_patch false
+    vendor_tag GPL
+    readme < ./src/README
+    checkinstall ./src/scripts/checkinstall.sh
+    preinstall	 ./src/scripts/preinstall.sh
+    postinstall	 ./src/scripts/postinstall.sh
+    configure    ./src/scripts/configure.sh
+    postremove	 ./src/scripts/postremove.sh
+
+    fileset
+        tag Restart_cim_sfm
+        title WBEM/SFM restart cimserver and cimproviders
+        revision A.01.00.04
+        description restart_cim_sfm.sh script
+	architecture HP-UX_B.11_32/64
+        machine_type *
+        os_name HP-UX
+        os_release ?.11.*
+        os_version *
+        is_kernel false
+        is_reboot false
+        is_patch false
+        is_sparse false
+        directory ./src/usr/local/bin = /usr/local/bin
+        file -m 700 -o root -g sys restart_cim_sfm.sh
+    end # fileset
+
+    fileset
+	tag HPSIM_IRS_scripts
+	title HPSIM/IRS related scripts
+	revision A.01.00.04
+	description HPSIM/RSP related scripts
+	architecture HP-UX_B.11_32/64
+	machine_type *
+	os_name HP-UX
+	os_release ?.11.*
+	os_version *
+	is_kernel false
+	is_reboot false
+	is_patch false
+	is_sparse false
+	directory ./src/usr/local/bin = /usr/local/bin
+	file -m 700 -o root -g sys HPSIM-HealthCheck.sh
+	file -m 700 -o root -g sys HPSIM-Check-RSP-readiness.sh
+	file -m 700 -o root -g sys HPSIM-Upgrade-RSP.sh
+
+	directory ./src/usr/share/doc = /usr/share/doc
+	file -m 444 -o bin -g bin similar.html
+
+	directory ./src/usr/newconfig/usr/local/etc = /usr/newconfig/usr/local/etc
+	file -m 640 -o root -g sys HPSIM_irsa.conf
+    end # fileset
+
+end #&## product
