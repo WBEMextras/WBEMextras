@@ -11,3 +11,6 @@ grep -v 'restart_cim_sfm' $cronfile  > $cronfile.new
 
 # activate the new crontab file
 crontab $cronfile.new
+
+# cleanup
+rm -f $cronfile.new

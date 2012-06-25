@@ -17,5 +17,5 @@ the status of the software and some other basic checks including sending a test 
 
 An HTML file is included with more information on the pre-requisites and how to use these scripts.
 
-See /usr/share/doc/wbemextras.html
+See /usr/share/doc/wbemextras.html or web-site http://wbemextras.github.com/
 

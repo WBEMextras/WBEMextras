@@ -17,3 +17,6 @@ crontab $cronfile.new
 # show the added line
 echo "       * Added line to crontab:"
 echo "         $(crontab -l | grep restart_cim_sfm)"
+
+# cleanup
+rm -f $cronfile.new
