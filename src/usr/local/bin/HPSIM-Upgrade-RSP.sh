@@ -110,6 +110,8 @@ OPTIONS
 EXAMPLES
     $PRGNAME -d 10.4.9.76:/var/opt/ignite/depots/GLOBAL/rsp/pre-req
         Run $PRGNAME in preview mode only and will give a status update.
+    $PRGNAME -d /test/irsa_1131_apr_2012.depot
+	Run $PRGNAME in preview mode only and use a file depot as source depot
     $PRGNAME -i
         Run $PRGNAME in installation mode and use default values for
         IP address of Ignite server (or SD server) and software depot path
@@ -118,7 +120,7 @@ IMPLEMENTATION
   version       Id: $PRGNAME $
   Revision      $(_revision)
   Author        Gratien D'haese
-  Release Date  16-Jan-2012
+  Release Date  26-Jul-2012
 eof
 }
 
@@ -186,21 +188,36 @@ function _define_installation_path {
 	fi
 }
 
-function _netRegion {
-        # Some systems have more than 1 default gateway.   If 'tail -1' is not used, we will
-        # not be able to correctly identify it as the returned value will have a line feed followed
-        # by other entries.
-        typeset defaultgw="$(/usr/bin/netstat -rn | /sbin/awk '/default/ { print $2 }' | tail -1)"
-        # Quick way of getting first two octets  (we are dropping the last two)
-        typeset net=$defaultgw; net=${net%.*}; net=${net%.*}
+function _define_SourceDepot {
+	# the source depot can be a directory or a file depot (tar format)
+	$SWLIST -l depot  -s ${IUXSERVER} | grep -q "${baseDepo}/$os" 2>/dev/null
+	CODE=$?
+	if [ $CODE -eq 0 ]; then
+		sourceDepo=${IUXSERVER}:${baseDepo}/$os
+	else
+		sourceDepo=${baseDepo}
+	fi
+}
 
-        case $net in
-                10\.@(19[246789]|20[0189]|210|222)) IUXSERVER=10.209.16.80 ;; # ASPAC
-                10\.@(12[89]|13[01]|148|150|152)) IUXSERVER=10.129.225.75 ;; # EMEA
-                10\.9[78]) IUXSERVER=10.97.215.152 ;; # LA
-                10\.@([124568]|10.1[1245679]|2[02358]|3[235])) IUXSERVER=10.4.9.76 ;; # NA
-                *) IUXSERVER=10.4.9.76 ;; # Falling back to NA as a default region
-        esac
+function _netRegion {
+        # Some systems have more than 1 default gateway.
+
+	octet="$(netstat -rn | awk '/default/ && /UG/ { sub (/^[0-9]+\./, "", $2); sub (/\.[0-9]+\.[0-9]+$/,"",$2);
+                print $2;
+                exit }')"
+
+	IUXSERVER=10.36.96.94		# default value (NA)
+	if [ ${octet} -lt   1 ]; then
+		IUXSERVER=10.0.11.237	# dfdev
+	elif [ ${octet} -lt  96 ]; then
+		IUXSERVER=10.36.96.94	# NA
+	elif [ ${octet} -lt 128 ]; then
+		IUXSERVER=10.36.96.94	# LA
+	elif [ ${octet} -lt 192 ]; then
+		IUXSERVER=10.129.52.119	# EMEA
+	elif [ ${octet} -lt 224 ]; then
+		IUXSERVER=10.129.52.119	# ASPAC
+	fi
 }
 
 function _ping_system {
@@ -223,7 +240,7 @@ function is_wbem_account_created {
 
 function _grab_sw_bundles {
         # grab the current software depot according OS release
-        $SWLIST -s ${IUXSERVER}:${baseDepo}/${os} | egrep -v -E 'PH|\#' | sed '/^$/d' 
+        $SWLIST -s ${sourceDepo} | egrep -v -E 'PH|\#' | sed '/^$/d' 
 }
 
 function _libipmimsg_patch_installed {
@@ -247,14 +264,14 @@ function _isHigher {
 
 function _installMissingSw {
         _note "$(date) - Installing $*"
-        $SWINSTALL $swarg $swarg2 -s ${IUXSERVER}:${baseDepo}/${os} $1 
+        $SWINSTALL $swarg $swarg2 -s ${sourceDepo} $1 
         _swjob $1 "installation"
         _line "-"
 }
 
 function _upgradeSw {
         _note "$(date) - Upgrading $*"
-        $SWINSTALL $swarg $swarg2 -s ${IUXSERVER}:${baseDepo}/${os} $1,r=$2
+        $SWINSTALL $swarg $swarg2 -s ${sourceDepo} $1,r=$2
         _swjob $1 "upgrade"
         _line "-"
 }
@@ -406,6 +423,7 @@ fi
 
 typeset instlog=$dlog/${PRGNAME%???}.$(date +'%Y-%m-%d.%H%M%S').scriptlog
 
+
 ###########
 # M A I N #
 ###########
@@ -452,6 +470,8 @@ if [ $? -eq 0 ]; then
         exit 0
 fi
 #=====================================================================================#
+_define_SourceDepot
+#=====================================================================================#
 $SWLIST > $TMPFILE      # dump the bundles on this system in a file
 
 # before we start installing or upgrading software check the status of the installed software
@@ -468,7 +488,7 @@ case ${os} in
                         pver=`$SWLIST -l patch | grep 'cumulative libipmimsg patch' | awk '{print $2}' | cut -d_ -f2`
                         if [ $pver -lt 41483 ]; then
                           _print "Patch PHCO_${pver} (cumulative libipmimsg patch) will be updated"; _ok
-                          Patch=`$SWLIST -s ${IUXSERVER}:${baseDepo}/${os} | grep 'cumulative libipmimsg patch' | awk '{print $1}'`
+                          Patch=`$SWLIST -s ${sourceDepo} | grep 'cumulative libipmimsg patch' | awk '{print $1}'`
                           _upgradeSw ${Patch} 1.0 "cumulative libipmimsg patch"
                         fi
                 fi
@@ -485,7 +505,7 @@ case ${os} in
 			_removeSw B7611BA,r=A.04.20.11.03 "EMS-Devkit" 
 		 fi
 		 ;;
-        "11.31") PSBver=`$SWLIST -s ${IUXSERVER}:${baseDepo}/${os} ProviderSvcsBase 2>/dev/null | grep ProviderSvcsBase | head -1 | awk '{print $3}'`
+        "11.31") PSBver=`$SWLIST -s ${sourceDepo} ProviderSvcsBase 2>/dev/null | grep ProviderSvcsBase | head -1 | awk '{print $3}'`
                  $SWLIST ProviderSvcsCore >/dev/null 2>&1
                  if [ $? -eq 1 ]; then
                         # ProviderSvcsCore not installed

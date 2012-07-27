@@ -107,7 +107,7 @@ OPTIONS
 	  B.11.11 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.11
 	  B.11.23 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.23
 	  B.11.31 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.31
-	However, -d /cdrom/rsp/pre-req is also valid where same rules apply as above.
+	However, -d /cdrom/irsa_1131_apr_2012.depot is also valid where same rules apply as above.
 
   -p
 	Prompt for a password for the WBEM user (non-priviledge user).
@@ -130,6 +130,8 @@ OPTIONS
 EXAMPLES
     $PRGNAME -d 10.4.9.76:/var/opt/ignite/depots/GLOBAL/rsp/pre-req
 	Run $PRGNAME in preview mode only and will give a status update.
+    $PRGNAME -d /test/irsa_1131_apr_2012.depot
+	Run $PRGNAME in preview mode only and use a file depot as source depot
     $PRGNAME -i
 	Run $PRGNAME in installation mode and use default values for
 	IP address of Ignite server (or SD server) and software depot path
@@ -138,7 +140,7 @@ IMPLEMENTATION
   version	Id: $PRGNAME $
   Revision	$(_revision)
   Author	Gratien D'haese
-  Release Date	22-Feb-2012
+  Release Date	26-Jul-2012
 eof
 }
 
@@ -185,23 +187,55 @@ function _define_installation_path {
 	fi
 }
 
+function _define_SourceDepot {
+	# the source depot can be a directory or a file depot (tar format)
+	$SWLIST -l depot  -s ${IUXSERVER} | grep -q "${baseDepo}/$os" 2>/dev/null
+	CODE=$?
+	if [ $CODE -eq 0 ]; then
+		sourceDepo=${IUXSERVER}:${baseDepo}/$os
+	else
+		sourceDepo=${baseDepo}
+		if [[ ! -f ${sourceDepo} ]]; then
+			_note "Source depot $sourceDepo is not a tar archive on $(hostname)!"
+		fi
+	fi
+}
+
+function _swinstall {
+	# arg1 is the software we want to install
+	# arg2 (optional) are extra options required above these mentioned below
+	echo $SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false "$2" -s ${sourceDepo} $1
+}
+
+function _swremove {
+	echo $SWREMOVE $swarg -x enforce_dependencies=false -x mount_all_filesystems=false $1
+}
+
+function _swconfig {
+	echo $SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false $1
+}
+
 function _netRegion {
 	# In a GLOBAL environment it might be possible to have more then 1 software depot server
 	# which is usually also the Ignite server
-	# Some systems have more than 1 default gateway.   If 'tail -1' is not used, we will
-	# not be able to correctly identify it as the returned value will have a line feed followed
-	# by other entries.
-	typeset defaultgw="$(/usr/bin/netstat -rn | /sbin/awk '/default/ { print $2 }' | tail -1)"
-        # Quick way of getting first two octets  (we are dropping the last two)
-        typeset net=$defaultgw; net=${net%.*}; net=${net%.*}
+	# Some systems have more than 1 default gateway.
 
-        case $net in
-                10\.@(19[246789]|20[0189]|210|222)) IUXSERVER=10.209.16.80 ;; # ASPAC
-                10\.@(12[89]|13[01]|148|150|152)) IUXSERVER=10.129.225.75 ;; # EMEA
-                10\.9[78]) IUXSERVER=10.97.215.152 ;; # LA
-                10\.@([124568]|10.1[1245679]|2[02358]|3[235])) IUXSERVER=10.4.9.76 ;; # NA
-                *) IUXSERVER=10.4.9.76 ;; # Falling back to NA as a default region
-        esac
+	octet="$(netstat -rn | awk '/default/ && /UG/ { sub (/^[0-9]+\./, "", $2); sub (/\.[0-9]+\.[0-9]+$/,"",$2);
+			print $2;
+			exit }')"
+
+	IUXSERVER=10.36.96.94 		# default value (NA)
+	if [ ${octet} -lt   1 ]; then
+		IUXSERVER=10.0.11.237   # dfdev
+	elif [ ${octet} -lt  96 ]; then
+		IUXSERVER=10.36.96.94   # NA
+	elif [ ${octet} -lt 128 ]; then
+		IUXSERVER=10.36.96.94   # LA
+	elif [ ${octet} -lt 192 ]; then
+		IUXSERVER=10.129.52.119 # EMEA
+	elif [ ${octet} -lt 224 ]; then
+		IUXSERVER=10.129.52.119 # ASPAC
+	fi
 }
 
 
@@ -210,66 +244,6 @@ function is_digit {
 	expr "$1" + 1 > /dev/null 2>&1
 }
 
-function _check_patch_bundle {
-	typeset i product a
-	typeset -i y=0
-
-	# Patch check. Collect first all ITS/NCS Golden Patches
-	# -------------------------------------------------------------------------
-	for i in $(cat $TMPFILE | awk '/(ncs|its)gpb/ || /(NCS|ITS)GPB/ { print $1 }'); do
-		y=$(( y + 1 ))
-		product[${y}]=${i##*-}
-	done
-
-	# Process multiple entries if any
-	for i in ${product[@]}; do
-		# What are we doing here?  Quite simply put, we are
-		# turning numbers around to make them "sortable".
-		# We take the first two digits and append them to the end
-
-		i=$(echo $i | cut -c3-)		# Drop preceeding month (032010)
-
-		# Process multiple entries if any and sort them so the latest one
-		# ends up in our bucket.
-		[ "$i" -gt "$a" ] && a=$i
-	done
-
-	# OK.  No all systems use our Patch bundles. Min. patch level not met yet?
-	# ---------------------------------------------------------------------------
-	if (( minpatch > a )); then
-		product=""; y=0
-		for i in $(cat $TMPFILE | awk '/GOLDBASE11i/ { print }'); do
-			y=$(( y + 1 ))
-			product[${y}]=$i
-		done
-
-		# Process multiple entries if any and sort them so the latest one
-		# ends up in our bucket.
-		for i in ${product[@]}; do
-			is_digit $i &&  { [ "$i" -gt "$a" ] && a=$i; }
-		done
-
-		if [[ $a = +([[:digit:]]) ]]; then
-			: # Do nothing
-		else
-			_note "Could not acquire patch release year - FAILED"
-			return 1 # We expect a four digit number
-		fi
-	fi
-
-	# Retrun code for satfisfied or not satisfied patch level
-	# -------------------------------------------------------------------------
-	if (( minpatch > a )); then
-		_note "Minimum patch requirement not met ($a) - FAILED"
-		return 1
-	else
-		_note "Minimum patch requirement met ($a) - OK"
-		return 0
-	fi
-}
-
-
-
 function _check_openssl {
 	case ${OSver} in
 		"B.11.11")
@@ -277,7 +251,7 @@ function _check_openssl {
 			if [ $? -eq 0 ]; then
 				_note "OpenSSL,r=A.02.00-0.9.7c must be removed"
 				ActionTest[$1]="echo ${ActionTest[$1]}"
-				_upgrade_openssl_string $1 "$SWREMOVE  $swarg -x enforce_dependencies=false -x mount_all_filesystems=false OpenSSL,r=A.02.00-0.9.7c"
+				_upgrade_openssl_string $1 "$(_swremove OpenSSL,r=A.02.00-0.9.7c)"
 			fi
 			$SWLIST [Oo]pen[Ss][Ss][Ll],r\>=A.00.09.07i.012 >/dev/null 2>&1
 			CODE=$?
@@ -287,7 +261,7 @@ function _check_openssl {
 			else
 				_note "Please upgrade OpenSSL"
 				ActionTest[$1]="echo ${ActionTest[$1]} $2"
-				_upgrade_openssl_string $1 "$SWINSTALL $swarg -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os OpenSSL"
+				_upgrade_openssl_string $1 "$(_swinstall OpenSSL)"
 			fi
 			;;
 		"B.11.23")
@@ -295,7 +269,7 @@ function _check_openssl {
 			if [ $? -eq 0 ]; then
 				_note "OpenSSL,r=A.02.00-0.9.7c must be removed"
 				ActionTest[$1]="echo ${ActionTest[$1]} $2"
-				_upgrade_openssl_string $1 "$SWREMOVE  $swarg -x enforce_dependencies=false -x mount_all_filesystems=false OpenSSL,r=A.02.00-0.9.7c"
+				_upgrade_openssl_string $1 "$(_swremove OpenSSL,r=A.02.00-0.9.7c)"
 			fi
 
 			$SWLIST [Oo]pen[Ss][Ss][Ll],r\>=A.00.09.07e.013 >/dev/null 2>&1
@@ -306,7 +280,7 @@ function _check_openssl {
 			else
 				_note "Please upgrade OpenSSL"
 				ActionTest[$1]="echo ${ActionTest[$1]} $2"
-				_upgrade_openssl_string $1 "$SWINSTALL $swarg  -x mount_all_filesystems=false -s ${IUXSERVER}:${PATH1123} OpenSSL"
+				_upgrade_openssl_string $1 "$(_swinstall OpenSSL)"
 			fi
 			;;
 		"B.11.31")
@@ -314,7 +288,7 @@ function _check_openssl {
 			if [ $? -eq 0 ]; then
 				_note "OpenSSL,r=A.02.00-0.9.7c must be removed"
 				ActionTest[$1]="echo ${ActionTest[$1]}"
-				_upgrade_openssl_string $1 "$SWREMOVE  $swarg -x enforce_dependencies=false -x mount_all_filesystems=false OpenSSL,r=A.02.00-0.9.7c"
+				_upgrade_openssl_string $1 "$(_swremove OpenSSL,r=A.02.00-0.9.7c)"
 			fi
 			$SWLIST [Oo]pen[Ss][Ss][Ll],r\>=A.00.09.08r.003 >/dev/null 2>&1
 			CODE=$?
@@ -324,7 +298,7 @@ function _check_openssl {
 			else
 				_note "Please upgrade OpenSSL"
 				ActionTest[$1]="echo ${ActionTest[$1]} $2"
-				_upgrade_openssl_string $1 "$SWINSTALL $swarg -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os OpenSSL"
+				_upgrade_openssl_string $1 "$(_swinstall OpenSSL)"
 			fi
 			;;
 	esac
@@ -372,7 +346,7 @@ function _check_wbem {
 			"B.11.11"|"B.11.23")
 				_note "Please upgrade WBEMServices"
 				ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os WBEMSvcs"
+				$(_swinstall WBEMSvcs)"
 				;;
 			*)
 				_note "WBEMServices will be installed via WBEMMgmtBundle"
@@ -391,7 +365,7 @@ function _check_WBEMextras {
 		ActionTest[$1]="echo ${ActionTest[$1]} $2 - OK"
 	else
 		ActionTest[$1]="echo ${ActionTest[$1]} $2 \n# Install WBEMextras\n
-$SWINSTALL $swarg -x reinstall=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os WBEMextras"
+		$(_swinstall WBEMextras)"
 	fi
 }
 
@@ -426,14 +400,14 @@ function _check_onlinediag {
 		ActionTest[$1]="echo ${ActionTest[$1]} $2 \n"
 		if [ "${OSver}" = "B.11.11" ]; then
 			ActionTest[$1]="${ActionTest[$1]} \n
-# To avoid version conflict with stm gui we remove the EMS Dev Kit first \n
-$SWREMOVE  $swarg -x enforce_dependencies=false -x mount_all_filesystems=false B7611BA \n
-$SWREMOVE  $swarg -x enforce_dependencies=false -x mount_all_filesystems=false EMS-DiskMonitor \n
-$SWREMOVE  $swarg -x enforce_dependencies=false -x mount_all_filesystems=false EMS-MIBMonitor \n
-# We force an installation of OnlineDiag now \n"
+			# To avoid version conflict with stm gui we remove the EMS Dev Kit first \n
+			$(_swremove B7611BA) \n
+			$(_swremove EMS-DiskMonitor) \n
+			$(_swremove EMS-MIBMonitor) \n
+			# We force an installation of OnlineDiag now \n"
 		fi # end of "B.11.11"
 		ActionTest[$1]="${ActionTest[$1]}
-$SWINSTALL $swarg -x mount_all_filesystems=false -x enforce_dependencies=false -x autoreboot=true -s ${IUXSERVER}:${baseDepo}/$os OnlineDiag"
+		$(_swinstall OnlineDiag "-x autoreboot=true") "
 	fi
 
 }
@@ -447,7 +421,7 @@ function _check_sysmgmtweb {
 	else
 		_note "Please upgrade System Management Homepage"
 		ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os SysMgmtWeb"
+		$(_swinstall SysMgmtWeb)"
 	fi
 }
 
@@ -481,7 +455,7 @@ function _check_apache20 {
 		else
 			_note "Upgrade of hpuxwsApache is required"
 			ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os hpuxwsApache"
+			$(_swinstall hpuxwsApache)"
 		fi
 		;;
 		2)
@@ -491,7 +465,7 @@ $SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -
 		else
 			_note "hpuxwsApache A.2.0.x was not found - installing it"
 			ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os hpuxwsApache"
+			$(_swinstall hpuxwsApache)"
 		fi
 		;;
 	esac
@@ -524,9 +498,9 @@ function _check_apache22 {
 		1)
 		_note "Upgrade of hpuxws22Apache is required"
 		ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os hpuxws22Apache \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os hpuxws22Tomcat \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os hpuxws22Webmin"
+		$(_swinstall hpuxws22Apache) \n
+		$(_swinstall hpuxws22Tomcat) \n
+		$(_swinstall hpuxws22Webmin)"
 		;;
 		2) # hpuxws22Apache was not found
 		$SWLIST -s ${IUXSERVER}:${baseDepo}/$os hpuxws22[aA][pP][aA][cC][hH][eE]  >/dev/null 2>&1
@@ -534,9 +508,9 @@ $SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -
 			# OK, we have Apache 2.2 available on our central depot
 			_note "Installing latest Apache Web-server version 2.2.x"
 			ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os hpuxws22Apache \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os hpuxws22Tomcat \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os hpuxws22Webmin"
+			$(_swinstall hpuxws22Apache) \n
+			$(_swinstall hpuxws22Tomcat) \n
+			$(_swinstall hpuxws22Webmin)"
 		else
 			_note "hpuxws22Apache release not found - N/A"
 			ActionTest[$1]="echo ${ActionTest[$1]} $2 - N/A"
@@ -569,7 +543,7 @@ function _check_sfm {
 		"1")
 			_note "(Re-)Install of System Fault Management (SFM) is required"
 			ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x autoreboot=true -x reinstall=false -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os SysFaultMgmt"
+			$(_swinstall SysFaultMgmt "-x autoreboot=true -x reinstall=false") "
 			;;
 		"na")
 			_note "System Fault Management (SFM) will be installed via WBEMMgmtBundle"
@@ -581,7 +555,7 @@ $SWINSTALL $swarg -x autoreboot=true -x reinstall=false -x enforce_dependencies=
 	ActionTest[$1]="${ActionTest[$1]} \n
 $SWLIST -l fileset -a state SysFaultMgmt | grep -v -E '\#|configured' | grep  'installed' \n
 if [ \$? -eq 0 ]; then \n
-	$SWCONFIG $swarg -x mount_all_filesystems=false -x reconfigure=true SysFaultMgmt \n
+	$(_swconfig SysFaultMgmt) \n
 fi"
 }
 
@@ -605,7 +579,7 @@ function _check_WBEMMgmtBundle {
 			;;
 		*)	_note "(Re-)Install of WBEMMgmtBundle is required"
 			ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x autoreboot=true -x reinstall=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/${os} WBEMMgmtBundle CommonIO SysMgmtPlus"
+			$(_swinstall "WBEMMgmtBundle CommonIO SysMgmtPlus" "-x autoreboot=true -x reinstall=false") " 
 			;;
 	esac
 }
@@ -622,7 +596,7 @@ function _check_rsp_patches {
 			if [ $CODE -ne 0 ]; then
 				_note "Apply IRSA patch bundle for HP-UX 11.23"
 				ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x patch_match_target=true -x enforce_dependencies=false -x autoreboot=true -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os WBEMpatches-1123"
+				$(_swinstall WBEMpatches-1123 "-x patch_match_target=true  -x autoreboot=true") "
 			else
 				_note "IRSA patch bundle for HP-UX 11.23 already present"
 				ActionTest[$1]="echo ${ActionTest[$1]} $2 - OK"
@@ -640,7 +614,7 @@ function _check_ISEEPlatform {
 	if [ $? -eq 0 ]; then
 		_note "ISEEPlatform must be removed"
 		ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWREMOVE  $swarg -x enforce_dependencies=false -x mount_all_filesystems=false ISEEPlatform"
+		$(_swremove ISEEPlatform)"
 	else
 		_note "ISEEPlatform was not found - OK"
 		ActionTest[$1]="echo ${ActionTest[$1]} $2 - OK"
@@ -684,8 +658,6 @@ function _check_old_SFM {
 			;;
 	esac
 
-###$SWREMOVE  $swarg -x enforce_dependencies=false -x mount_all_filesystems=false SysFaultMgmt"
-
 	rm -f $TMPFILE
 }
 
@@ -711,7 +683,7 @@ function _check_old_ProviderSvcsCore {
 		"1")
 			_note "ProviderSvcsCore must be removed (will be re-installed later)"
 			ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWREMOVE  $swarg -x enforce_dependencies=false -x mount_all_filesystems=false ProviderSvcsCore"
+			$(_swremove ProviderSvcsCore)"
 			;;
 		"2")
 			_note "ProviderSvcsCore was not found (will be installed later)"
@@ -732,7 +704,7 @@ function _install_rs_acc {
 	if [ $CODE -ne 0 ]; then
 		_note "Install HP Remote Support Advanced Configuration Collector"
         	ActionTest[$1]="${ActionTest[$1]} \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os RS-ACC"
+		$(_swinstall RS-ACC)"
 	else
 		_note "HP Remote Support Advanced Configuration Collector version is OK"
 		ActionTest[$1]="${ActionTest[$1]} - OK"
@@ -762,7 +734,7 @@ function _check_nParProvider {
 		"1")
 		 	_note "Install or Update nParProvider"
 		 	ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os nParProvider"
+			$(_swinstall nParProvider)"
 			;;
 		"na")
 			_note "nParProvider is part of WBEMMgmtBundle"
@@ -794,7 +766,7 @@ function _check_vParProvider {
 		"1")
 		 	_note "Install or Update vParProvider"
 		 	ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-$SWINSTALL $swarg -x enforce_dependencies=false -x mount_all_filesystems=false -s ${IUXSERVER}:${baseDepo}/$os vParProvider"
+			$(_swinstall vParProvider)"
 			;;
 		"na")
 			_note "vParProvider is part of WBEMMgmtBundle"
@@ -809,112 +781,107 @@ function _swconfig_CIM_providers {
 	$SWLIST FCProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false FCProvider"
+	   $(_swconfig FCProvider)"
 	fi
 	$SWLIST FileSysProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false FileSysProvider"
+	   $(_swconfig FileSysProvider)"
 	fi
 	$SWLIST IOTreeIndication >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false IOTreeIndication"
+	   $(_swconfig IOTreeIndication)"
 	fi
 	$SWLIST IOTreeProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false IOTreeProvider"
+	   $(_swconfig IOTreeProvider)"
 	fi
 	$SWLIST LVMProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false LVMProvider"
+	   $(_swconfig LVMProvider)"
 	fi
 	$SWLIST SCSIProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false SCSIProvider"
+	   $(_swconfig SCSIProvider)"
 	fi
 	$SWLIST UtilProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false UtilProvider"
+	   $(_swconfig UtilProvider)"
 	fi
 	$SWLIST WBEMP-LAN-00 >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false WBEMP-LAN-00"
+	   $(_swconfig WBEMP-LAN-00)"
 	fi
 	$SWLIST nParProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false nParProvider"
+	   $(_swconfig nParProvider)"
 	fi
 	$SWLIST vParProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false vParProvider"
+	   $(_swconfig vParProvider)"
 	fi
 	$SWLIST KernelProviders >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false KernelProviders"
+	   $(_swconfig KernelProviders)"
 	fi
 	$SWLIST RAIDSAProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false RAIDSAProvider"
+	   $(_swconfig RAIDSAProvider)"
 	fi
 	$SWLIST SASProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false SASProvider"
+	   $(_swconfig SASProvider)"
 	fi
 	$SWLIST VMProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false VMProvider"
+	   $(_swconfig VMProvider)"
 	fi
 	$SWLIST DASProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false DASProvider"
+	   $(_swconfig DASProvider)"
 	fi
 	$SWLIST OLOSProvider >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false OLOSProvider"
+	   $(_swconfig OLOSProvider)"
 	fi
 	$SWLIST ProviderSvcsCore >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false ProviderSvcsCore"
+	   $(_swconfig ProviderSvcsCore)"
 	fi
 	$SWLIST CM-Provider-MOF >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false CM-Provider-MOF"
+	   $(_swconfig CM-Provider-MOF)"
 	fi
 	$SWLIST OPS-Provider-MOF >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false OPS-Provider-MOF"
+	   $(_swconfig OPS-Provider-MOF)"
 	fi
-#	$SWLIST WBEMP-FCP >/dev/null 2>&1
-#	if [ $? -eq 0 ]; then
-#	   ActionTest[$1]="${ActionTest[$1]} \n
-#$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false WBEMP-FCP"
-#	fi
 	$SWLIST WBEMP-LAN >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
 	   ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false WBEMP-LAN"
+	   $(_swconfig WBEMP-LAN)"
 	fi
 	# final steps SW-DIST and SFM-CORE
 	ActionTest[$1]="${ActionTest[$1]} \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false SW-DIST \n
-$SWCONFIG $swarg -x autoselect_dependencies=false -x reconfigure=true -x mount_all_filesystems=false SFM-CORE"
+	$(_swconfig SW-DIST) \n
+	$(_swconfig SFM-CORE)"
 ######## END of Test - swconfig of CIM Providers ##############
 }
 
@@ -1285,14 +1252,14 @@ function _check_HpsmhAdminGroup {
 }
 
 function BaseDepo_os_available {
-	$SWLIST -l depot  -s ${IUXSERVER} | grep -q "${baseDepo}/$os" 2>/dev/null
+	$SWLIST -s ${sourceDepo} >/dev/null 2>/dev/null
 	CODE=$?
 	if [ $CODE -eq 0 ]; then
 		ActionTest[$1]="echo ${ActionTest[$1]} $2 - OK"
-		_note "Depot ${baseDepo}/$os exists on ${IUXSERVER} - OK"
+		_note "Depot ${sourceDepo} exists - OK"
 	else
 		ActionTest[$1]="echo ${ActionTest[$1]} $2 - FAIL"
-		_note "Depot ${baseDepo}/$os not found on ${IUXSERVER} - FAIL"
+		_note "Depot ${sourceDepo} not found on ${IUXSERVER} - FAIL"
 		if [[ $INSTALL_MODE = 1 ]]; then
 			# in installation mode we stop here
 			exit 1
@@ -1434,6 +1401,7 @@ fi
 # M A I N #
 ###########
 
+_define_SourceDepot
 
 #=====================================================================================#
 int j
@@ -1460,7 +1428,7 @@ HighestTestNr=$((HighestTestNr + 1))
 Corrupt_Filesets $HighestTestNr "Corrupt filesets found"
 HighestTestNr=$((HighestTestNr + 1))
 
-# Test - is $baseDepo/$os readable with swlist?
+# Test - is $sourceDepo readable with swlist?
 BaseDepo_os_available $HighestTestNr "Software Depot is available"
 HighestTestNr=$((HighestTestNr + 1))
 
