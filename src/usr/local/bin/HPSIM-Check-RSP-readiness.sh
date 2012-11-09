@@ -45,10 +45,16 @@ alias lower="typeset -l"
 alias upper="typeset -u"
 
 export PRGNAME=${0##*/}
-export PRGDIR=${0%/*}
+export PRGDIR=$(dirname $0)
 export PATH=$PATH:/usr/bin:/usr/sbin:/sbin
 
-[[ $PRGDIR = /* ]] || PRGDIR=$(pwd)	# Acquire absolute path
+[[ $PRGDIR = /* ]] || {					# acquire an absolute path
+	case $PRGDIR in
+		. ) PRGDIR=$(pwd) ;;
+		* ) PRGDIR=$(pwd)/$PRGDIR ;;
+	esac
+	}
+
 
 SWLIST=/usr/sbin/swlist
 SWINSTALL=/usr/sbin/swinstall
@@ -140,7 +146,7 @@ IMPLEMENTATION
   version	Id: $PRGNAME $
   Revision	$(_revision)
   Author	Gratien D'haese
-  Release Date	26-Jul-2012
+  Release Date	09-Nov-2012
 eof
 }
 

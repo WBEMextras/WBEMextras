@@ -36,7 +36,7 @@ alias lower="typeset -l"
 alias upper="typeset -u"
 
 export PRGNAME=${0##*/}
-export PRGDIR=${0%/*}
+export PRGDIR=$(dirname $0)
 export PATH=$PATH:/usr/bin:/usr/sbin:/sbin
 
 readonly  TMPFILE=/tmp/tmpfile4rsp
@@ -57,7 +57,12 @@ typeset arch=$(uname -m)				# e.g. 9000/800 or ia64
 typeset EXITCODE=0                                      # Define the default exit code
 
 
-[[ $PRGDIR = /* ]] || PRGDIR=$(pwd)
+[[ $PRGDIR = /* ]] || {					# acquire an absolute path
+	case $PRGDIR in
+		. ) PRGDIR=$(pwd) ;;
+		* ) PRGDIR=$(pwd)/$PRGDIR ;;
+	esac
+	}
 
 #############
 # Functions #
@@ -120,7 +125,7 @@ IMPLEMENTATION
   version       Id: $PRGNAME $
   Revision      $(_revision)
   Author        Gratien D'haese
-  Release Date  26-Jul-2012
+  Release Date  09-Nov-2012
 eof
 }
 
