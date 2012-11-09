@@ -1290,7 +1290,7 @@ _whoami				# must be root to continue
 #                               Config file
 # -----------------------------------------------------------------------------
 if [ -f $ConfFile ]; then
-        _note "Reading configuration file $ConfFile"
+        #_note "Reading configuration file $ConfFile" (to display the correct ConfFile used)
         . $ConfFile || _error "Problem with dotting $ConfFile (perhaps DOS format?)"
 fi
 
@@ -1313,7 +1313,7 @@ while getopts ":u:g:d:m:c:s:hpvi" opt; do
 		s) SimServer="$OPTARG" ;;
 		i) INSTALL_MODE=1 ;;
 		c) ConfFile="$OPTARG"
-		   [ -f $ConfFile ] && . $ConfFile
+		   [ -f $ConfFile ] && . $(dirname $ConfFile)/${ConfFile##*/}
 		   ;;
 		:)
 			_note "Missing argument.\n"
@@ -1324,6 +1324,8 @@ while getopts ":u:g:d:m:c:s:hpvi" opt; do
 done
 
 shift $(( OPTIND - 1 ))
+
+_note "Reading configuration file $ConfFile"
 
 # -----------------------------------------------------------------------------
 #				Some sanity checks

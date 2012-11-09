@@ -370,7 +370,7 @@ _whoami         # must be root to continue
 # -----------------------------------------------------------------------------
 # the only variable that will be used by this script is WbemUser (if present)
 if [ -f $ConfFile ]; then
-	_note "Reading configuration file $ConfFile"
+	#_note "Reading configuration file $ConfFile"   (to avoid confusing message at this point)
 	. $ConfFile
 fi
 
@@ -385,7 +385,7 @@ while getopts ":u:d:m:c:hvi" opt; do
                    ;;
                 m) mailusr="$OPTARG" ;;
 		c) ConfFile="$OPTARG"
-		   [ -f $ConfFile ] && . $ConfFile
+		   [ -f $ConfFile ] && . $(dirname $ConfFile)/${ConfFile##*/}
 		   ;;
                 h) _msg; echo; exit 2 ;;
                 v) _revision; exit ;;
@@ -399,6 +399,8 @@ while getopts ":u:d:m:c:hvi" opt; do
 done
 
 shift $(( OPTIND - 1 ))
+
+_note "Reading configuration file $ConfFile"
 
 # Some sanity checks
 if [[ -z $IUXSERVER ]]; then
