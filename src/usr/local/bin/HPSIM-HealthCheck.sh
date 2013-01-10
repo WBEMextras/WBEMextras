@@ -280,38 +280,34 @@ function _checkSFM {
 }
 
 function _checkWBEMSvcs {
-        message1="WBEMSvcs ("
-        message2=") is properly installed"
-	case $osVer in
-		"B.11.31") swlist WBEMMgmtBundle.WBEMServices >/tmp/WBEMSvcs.$$ 2>/dev/null; err=$? ;;
-		*) swlist WBEMSvcs >/tmp/WBEMSvcs.$$ 2>/dev/null; err=$? ;;
-	esac
-        version=`grep "^#" /tmp/WBEMSvcs.$$ | tail -1 | awk '{print $3}'`
-        [ "$version" = "target" ] && version="N/A"
-        _print "${message1}${version}${message2}"
-        if [ $err -eq 1 ]; then
+	swlist WBEMSvcs WBEMServices >/tmp/WBEMSvcs.$$ 2>/dev/null
+	wbemproduct=$(grep "^#" /tmp/WBEMSvcs.$$ | tail -1 | awk '{print $2}')
+	echo $wbemproduct | grep -q WBEM 2>/dev/null || wbemproduct="WBEMSvcs"  # default name
+	message1="$wbemproduct ("
+	version=$(grep "^#" /tmp/WBEMSvcs.$$ | tail -1 | awk '{print $3}')
+	[ "$version" = "target" ] && version="N/A"
+	message2=") is properly installed"
+	_print "${message1}${version}${message2}"
+        rm -f /tmp/WBEMSvcs.$$
+
+        if [ "$version" = "N/A" ]; then
                 # not installed
                 _nok
                 SendTestEvent=1         # no need to send test event
                 _note "Did you run HPSIM-Check-RSP-readiness.sh already?"
                 return
         fi
-	case $osVer in
-		"B.11.31") swlist -l fileset -a state WBEMMgmtBundle.WBEMServices 2>/dev/null |\
-			egrep -v '\#|configured' > /dev/null; err=$? ;;
-		*) swlist -l fileset -a state WBEMSvcs 2>/dev/null | egrep -v '\#|configured' > /dev/null; err=$? ;;
-	esac
-        if [ $err -eq 0 ]; then
+	swlist -l fileset -a state $wbemproduct 2>/dev/null | egrep -v '\#|configured' > /dev/null
+        if [ $? -eq 0 ]; then
                 _ok
         else
                 _nok
                 _line
-                _note "WBEMSvcs is not (properly) installed:"
-                 swlist -l fileset -a state WBEMSvcs
+                _note "$wbemproduct is not (properly) installed:"
+                 swlist -l fileset -a state $wbemproduct
                 echo
                 _line
         fi
-        rm -f /tmp/WBEMSvcs.$$
 }
 
 function is_digit {
