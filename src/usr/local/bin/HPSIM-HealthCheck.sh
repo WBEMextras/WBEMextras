@@ -245,38 +245,33 @@ function _show_eventviewer {
 }
 
 function _checkSFM {
-        message1="SysFaultMgmt ("
+	swlist WBEMMgmtBundle.SFM-CORE SysFaultMgmt  >/tmp/SFM.$$ 2>/dev/null
+	sfmproduct=$(grep "^#" /tmp/SFM.$$ | tail -1 | awk '{print $2}')
+	echo $sfmproduct | grep -q -E '(SFM|SysFaultMgmt)' || sfmproduct="SysFaultMgmt"
+        message1="$sfmproduct ("
+	version=$(grep "^#" /tmp/SFM.$$ | tail -1 | awk '{print $3}')
         message2=") is properly installed"
-	case $osVer in
-		"B.11.31") swlist WBEMMgmtBundle.SFM-CORE >/tmp/SFM.$$ 2>/dev/null; err=$? ;;
-		*) swlist SysFaultMgmt >/tmp/SFM.$$ 2>/dev/null; err=$? ;;
-	esac
-        version=`grep "^#" /tmp/SFM.$$ | tail -1 | awk '{print $3}'`
-        [ "$version" = "target" ] && version="N/A"
         _print "${message1}${version}${message2}"
-        if [ $err -eq 1 ]; then
+	rm -f /tmp/SFM.$$
+
+        if [  "$version" = "N/A" ]; then
                 # not installed
                 _nok
                 SendTestEvent=1         # no need to send test event
                 _note "Did you run HPSIM-Check-RSP-readiness.sh already?"
                 return
         fi
-	case $osVer in
-		"B.11.31") swlist -l fileset -a state WBEMMgmtBundle.SFM-CORE 2>/dev/null |\
-			   egrep -v '\#|configured' > /dev/null; err=$? ;;
-		*) swlist -l fileset -a state SysFaultMgmt 2>/dev/null | egrep -v '\#|configured' > /dev/null; err=$? ;;
-	esac
-        if [ $err -eq 0 ]; then
+	swlist -l fileset -a state $sfmproduct 2>/dev/null | egrep -v '\#|configured' > /dev/null
+        if [ $? -eq 0 ]; then
                 _ok
         else
                 _nok
                 _line
-                _note "SysFaultMgmt is not (properly) installed:"
-                 swlist -l fileset -a state SysFaultMgmt
+                _note "$sfmproduct is not (properly) installed:"
+                 swlist -l fileset -a state $sfmproduct
                 echo
                 _line
         fi
-        rm -f /tmp/SFM.$$
 }
 
 function _checkWBEMSvcs {
