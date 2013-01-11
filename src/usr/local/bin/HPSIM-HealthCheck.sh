@@ -173,12 +173,23 @@ function _checkSimSub {
         cimsub -ls > /tmp/_checkSub.$$ 2>/dev/null || evweb subscribe -L -b external > /tmp/_checkSub.$$ 2>/dev/null
         grep -q HPSIM /tmp/_checkSub.$$
         if [ $? -eq 0 ]; then
-                _ok
+		# add a check if old subscription exist
+		short_SimServer=$(echo $SimServer | cut -d. -f1)
+		grep HPSIM /tmp/_checkSub.$$ | tr [A-Z] [a-z] | grep -v $short_SimServer > /tmp/_old_subscriptions.$$
+		if [ $? -eq 1 ]; then
+                	_ok
+		else
+			_warn
+			_note "WARNING: please remove these old HPSIM subscriptions"
+			_line
+			cat /tmp/_old_subscriptions.$$
+			_line
+		fi
         else
                 _nok
                 _note "Did you added system $SystemName to HP SIM and ran \"Subscribe to WBEM Events\"?"
         fi
-        rm -f /tmp/_checkSub.$$
+        rm -f /tmp/_checkSub.$$ /tmp/_old_subscriptions.$$
 }
 
 function _checkWebesSub {
@@ -186,7 +197,18 @@ function _checkWebesSub {
         cimsub -ls > /tmp/_checkWebesSub.$$ 2>/dev/null || evweb subscribe -L -b external > /tmp/_checkWebesSub.$$ 2>/dev/null
         grep -q HPWEBES /tmp/_checkWebesSub.$$
         if [ $? -eq 0 ]; then
-                _ok
+		# add a check if old subscription exist
+		short_SimServer=$(echo $SimServer | cut -d. -f1)
+		grep HPWEBES /tmp/_checkWebesSub.$$ | tr [A-Z] [a-z] | grep -v $short_SimServer > /tmp/_old_subscriptions.$$
+		if [ $? -eq 1 ]; then
+                	_ok
+		else
+			_warn
+			_note "WARNING: please remove these old HPWEBES subscriptions"
+			_line
+			cat /tmp/_old_subscriptions.$$
+			_line
+		fi
         else
                 _nok
                 SendTestEvent=1         # no need to send test event
