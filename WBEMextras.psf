@@ -74,6 +74,7 @@ product
 	file -m 700 -o root -g sys HPSIM-HealthCheck.sh
 	file -m 700 -o root -g sys HPSIM-Check-RSP-readiness.sh
 	file -m 700 -o root -g sys HPSIM-Upgrade-RSP.sh
+	file -m 700 -o root -g sys cleanup_subscriptions.sh
 
 	directory ./src/usr/share/doc = /usr/share/doc
 	file -m 444 -o bin -g bin wbemextras.html
