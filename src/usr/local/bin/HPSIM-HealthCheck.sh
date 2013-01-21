@@ -765,7 +765,7 @@ _whoami         # only root can run this
 #				Config file
 # -----------------------------------------------------------------------------
 if [ -f $ConfFile ]; then
-	_note "Reading configuration file $ConfFile"
+	#_note "Reading configuration file $ConfFile"
 	. $ConfFile
 fi
 
@@ -827,6 +827,7 @@ fi
 [ -f $instlog ] && mv -f $instlog ${instlog}.old
 
 {
+	_note "Reading configuration file $ConfFile"
         _line
         echo "               Script: $PRGNAME"
         [[ "$(_revision)" = "UNKNOWN" ]] || echo "             Revision: $(_revision)"
