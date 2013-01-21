@@ -288,7 +288,7 @@ IUXSERVER=iux-server
 baseDepo=/var/opt/ignite/depots/irsa
 ENCPW="6u2CMymnCznQo"
 </pre>
-<h2 id='the_sim_installation_and_loggings_similar_scripts'>The SIM Installation and Loggings (similar) Scripts</h2>
+<h2 id='the_sim_installation_and_loggings_wbemextras_scripts'>The SIM Installation and Loggings (wbemextras) Scripts</h2>
 
 <p>The scripts were developed to install, configure, upgrade and check the HPSIM IRSA related software on the HP-UX managed nodes. See it as an aid in getting these installation and configuration tasks done in a simple way. The only thing we need are the software depots which we already have installed (or copied) on our central Ignite/UX server and the first script <code>HPSIM-Check-RSP-readiness.sh</code> and its accompying configuration file (albeit not required to have).</p>
 
@@ -945,6 +945,27 @@ for monitor dm_memory to cause generation of test event.
 </pre>
 <p>After, the upgrade we better re-run the <code>HPSIM-HealthCheck.sh</code> script again to verify if all is fine.</p>
 
+<h3 id='the_usrlocalbincleanup_subscriptionssh_script'>The /usr/local/bin/cleanup_subscriptions.sh script</h3>
+
+<p>If you migrate a managed node from one HPSIM server to another and configure it correctly with the new SIM server then you will have multiple HPSIM/HPWEBES subscriptions. To cleanup old subscription we provided a script <code>cleanup_subscriptions.sh</code>.</p>
+
+<p>The usage is quite simple:</p>
+<pre>
+/usr/local/bin/cleanup_subscriptions.sh -h
+Usage: cleanup_subscriptions.sh [-s HPSIM-Server] [-m mail1,mail2] [-c Config file] [-hd]
+-s: The HPSIM server (IP address or FQDN).
+-m: The mail recipients seperated by comma.
+-c: The config file for arguments.
+-h: This help message.
+-d: Debug mode (safe mode)
+
+cleanup_subscriptions.sh run without any switch will use the following default values:
+-s sim-server -m root
+
+Purpose is to delete obsolete HPSIM and WEBES subscriptions on this system.
+</pre>
+<p>The option <code>-d</code> is very helpful to run it in debug (preview) mode, then you will see what it will try to do (if you run the script without the <code>-d</code> argument).</p>
+
 <h3 id='the_wbemextras_hp_wbem_extras_for_hpux_depot'>The WBEMextras (HP WBEM Extras for HP-UX) depot</h3>
 
 <p>The WBEMextras software depot contains the following scripts which we already know:</p>
@@ -953,6 +974,8 @@ for monitor dm_memory to cause generation of test event.
 <li><code>/usr/local/bin/HPSIM-HealthCheck.sh</code></li>
 
 <li><code>/usr/local/bin/HPSIM-Upgrade-RSP.sh</code></li>
+
+<li><code>/usr/local/bin/cleanup_subscriptions.sh</code></li>
 </ul>
 
 <p>and, one new script <code>/usr/local/bin/restart_cim_sfm.sh</code> which has a correseponding crontab entry:</p>
@@ -978,6 +1001,8 @@ for monitor dm_memory to cause generation of test event.
 <h2 id='frequently_asked_question_faq'>Frequently Asked Question (FAQ)</h2>
 
 <p><em>ERROR: System <em>ignite-ux</em> is not reachable via ping from <em>hpux01</em></em> <br /> Make sure <em>ignite-ux</em> is a valid hostname and it must be reachable, otherwise, it makes no sense to use this script. Be aware, if we install from the localhost the Ignite/ux server may be named <em>localhost</em></p>
+
+<p><em>Question: Can I download the software depot as-is? <br /> Sure you can, from the <a href='https://github.com/WBEMextras/WBEMextras/downloads/'>download section of github.com</a></em></p>
 
 <h2 id='references'>References</h2>
 
