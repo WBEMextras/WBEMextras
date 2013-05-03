@@ -17,6 +17,7 @@ arch=$(/usr/sbin/swlist  -l product  -a architecture WBEMextras 2>/dev/null | gr
 [[ ! -z "${arch}" ]] && opts=",a=${arch}"	# prior version A.01.00.03 architecture was not used
 [[ ! -z "${ver}" ]]  && opts="${opts},r=${ver}"
 
-echo "       * Found WBEMextras${opts} on your system (swremove it first)"
-/usr/sbin/swremove -x enforce_dependencies=false -x mount_all_filesystems=false WBEMextras${opts}
-sleep 5
+echo "       * Found WBEMextras${opts} on your system"
+#echo "       * Found WBEMextras${opts} on your system (swremove it first)"
+#/usr/sbin/swremove -x enforce_dependencies=false -x mount_all_filesystems=false WBEMextras${opts}
+#sleep 5
