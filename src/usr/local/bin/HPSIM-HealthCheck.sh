@@ -67,7 +67,7 @@ function _helpMsg {
 		-h: This help message.
 		-v: Revision number of this script.
 	$PRGNAME run without any switch will use the following default values:
-		-s $SimServer -u $WbemUser -m $mailusr -t $MaxTestDelay
+		-s ${SimServer[0]} -u $WbemUser -m $mailusr -t $MaxTestDelay
 eof
 }
 
@@ -169,52 +169,70 @@ function _getSystemName {
 }
 
 function _checkSimSub {
-        _print "Valid HPSIM subscription for system ${lhost}"
+	typeset -i count=0 i=0
         cimsub -ls > /tmp/_checkSub.$$ 2>/dev/null || evweb subscribe -L -b external > /tmp/_checkSub.$$ 2>/dev/null
         grep -q HPSIM /tmp/_checkSub.$$
         if [ $? -eq 0 ]; then
-		# add a check if old subscription exist
-		short_SimServer=$(echo $SimServer | cut -d. -f1)
-		grep HPSIM /tmp/_checkSub.$$ | tr [A-Z] [a-z] | grep -v $short_SimServer > /tmp/_old_subscriptions.$$
-		if [ $? -eq 1 ]; then
-                	_ok
-		else
-			_warn
-			_note "WARNING: please remove these old HPSIM subscriptions"
-			_line
-			cat /tmp/_old_subscriptions.$$
-			_line
-		fi
+		count=${#SimServer[@]}	# count the amount of SIMSERVERS defined
+		grep HPSIM /tmp/_checkSub.$$ | tr [A-Z] [a-z] > /tmp/_old_subscriptions.$$   # only keep HPSIM entries
+		cp /tmp/_old_subscriptions.$$  /tmp/_checkSub.$$   # move the file back to see everything
+		while [ $i -lt $count ]
+		do
+			# add a check if old subscription exist
+			short_SimServer[$i]=$(echo ${SimServer[i]} | cut -d. -f1)
+			grep -v ${short_SimServer[i]} /tmp/_checkSub.$$ > /tmp/_old_subscriptions.$$
+			if [ $? -eq 1 ]; then
+        			_print "Valid HPSIM subscription for SIM server ${short_SimServer[i]}" ; _ok
+			fi
+			cp /tmp/_old_subscriptions.$$  /tmp/_checkSub.$$ 
+			i=$(( i + 1 ))
+		done
         else
                 _nok
-                _note "Did you added system $SystemName to HP SIM and ran \"Subscribe to WBEM Events\"?"
+		_note "Did you added system $SystemName to HP SIM and ran \"Subscribe to WBEM Events\"?"
         fi
+	if [ -s /tmp/_old_subscriptions.$$ ]; then
+		_warn
+		_note "WARNING: please remove these old HPSIM subscriptions"
+		_line
+		cat /tmp/_old_subscriptions.$$
+		_line
+	fi
         rm -f /tmp/_checkSub.$$ /tmp/_old_subscriptions.$$
 }
 
 function _checkWebesSub {
-        _print "Valid HPWEBES subscription for system ${lhost}"
+	typeset -i count=0 i=0
         cimsub -ls > /tmp/_checkWebesSub.$$ 2>/dev/null || evweb subscribe -L -b external > /tmp/_checkWebesSub.$$ 2>/dev/null
         grep -q HPWEBES /tmp/_checkWebesSub.$$
         if [ $? -eq 0 ]; then
-		# add a check if old subscription exist
-		short_SimServer=$(echo $SimServer | cut -d. -f1)
-		grep HPWEBES /tmp/_checkWebesSub.$$ | tr [A-Z] [a-z] | grep -v $short_SimServer > /tmp/_old_subscriptions.$$
-		if [ $? -eq 1 ]; then
-                	_ok
-		else
-			_warn
-			_note "WARNING: please remove these old HPWEBES subscriptions"
-			_line
-			cat /tmp/_old_subscriptions.$$
-			_line
-		fi
+		count=${#SimServer[@]}  # count the amount of SIMSERVERS defined
+		grep HPWEBES /tmp/_checkWebesSub.$$ | tr [A-Z] [a-z] > /tmp/_old_subscriptions.$$
+		cp /tmp/_old_subscriptions.$$ /tmp/_checkWebesSub.$$   # only keep HPWEBES stuff
+		while [ $i -lt $count ]
+		do
+			# add a check if old subscription exist
+			short_SimServer[$i]=$(echo ${SimServer[i]} | cut -d. -f1)
+			grep -v ${short_SimServer[i]} /tmp/_checkWebesSub.$$ > /tmp/_old_subscriptions.$$
+			if [ $? -eq 1 ]; then
+                		_print "Valid HPWEBES subscription for SIM server ${short_SimServer[i]}" ; _ok
+			fi
+			cp /tmp/_old_subscriptions.$$ /tmp/_checkWebesSub.$$
+			i=$(( i + 1 ))
+		done
         else
                 _nok
                 SendTestEvent=1         # no need to send test event
                 _note "System $SystemName does not have an HPWEBES subscription"
         fi
-        rm -f  /tmp/_checkWebesSub.$$
+	if [ -s /tmp/_old_subscriptions.$$ ]; then
+		_warn
+		_note "WARNING: please remove these old HPWEBES subscriptions"
+		_line
+		cat /tmp/_old_subscriptions.$$
+		_line
+	fi
+        rm -f  /tmp/_checkWebesSub.$$ /tmp/_old_subscriptions.$$
 }
 
 function _show_ext_subscriptions {
@@ -346,22 +364,22 @@ function _region {
                 +([0-9]))
                         if [ $secdig -eq 0 ]; then
                                 # Lab
-                                SimServer="10.0.54.130"
+                                SimServer[0]="10.0.55.107"  # itsusratdc03.dfdev.jnj.com
                         elif [ $secdig -eq 1 ] || [ $secdig -le 95 ]; then
                                 # North America
-                                SimServer="ITSUSRASIMMS1.na.jnj.com"
+                                SimServer[0]="itsusrasim3.jnj.com"
                         elif [ $secdig -eq 96 ] || [ $secdig -le 127 ]; then
                                 # Latin America
-                                SimServer="ITSUSRASIMMS1.na.jnj.com"
+                                SimServer[0]="itsusrasim3.jnj.com"
                         elif [ $secdig -eq 128 ] || [ $secdig -le 191 ]; then
                                 # EMEA
-                                SimServer="ITSBEBESVC209.eu.jnj.com"
+                                SimServer[0]="itsbebesim03.jnj.com"
                         elif [ $secdig -eq 192 ] || [ $secdig -le 223 ]; then
                                 # ASPAC
-                                SimServer="ITSBEBESVC209.eu.jnj.com"
+                                SimServer[0]="itsbebesim03.jnj.com"
                         else
                                 # Leftovers come to NA
-                                SimServer="ITSUSRASIMMS1.na.jnj.com"
+                                SimServer[0]="itsusrasim3.jnj.com"
                         fi
                 ;;
                 *)
@@ -370,7 +388,7 @@ function _region {
                         exit 1
                 ;;
         esac
-        echo "${SimServer}" > /tmp/SimServer.txt
+        echo "${SimServer[0]}" > /tmp/SimServer.txt
 }
 
 
@@ -666,9 +684,9 @@ function _checkvar {
 }
 
 function _pingSimServer {
-        z=`ping ${SimServer} -n 2 | grep "packet loss" | cut -d, -f3 | awk '{print $1}' | cut -d% -f1`
+        z=$(ping ${1} -n 2 | grep "packet loss" | cut -d, -f3 | awk '{print $1}' | cut -d% -f1)
 	[ -z "$z" ] && z=1
-        _print "HP SIM Server ${SimServer} is reachable"
+        _print "HP SIM Server ${1} is reachable"
         [ $z -eq 0 ] && _ok || _nok
 }
 
@@ -679,8 +697,8 @@ function _checkhpsmhruns {
 }
 
 function _checkopenssl {
-        _print "The WEBES port on ${SimServer} is accepting a SSL connection"
-        echo | openssl s_client -connect ${SimServer}:7906 2>/dev/null | grep -q CONNECTED
+        _print "The WEBES port on ${1} is accepting a SSL connection"
+        echo | openssl s_client -connect ${1}:7906 2>/dev/null | grep -q CONNECTED
         [ $? -eq 0 ] && _ok || _nok
 }
 
@@ -720,7 +738,7 @@ function _sendTestEvent {
                 esac
                 [ $? -eq 0 ] && _ok || _nok
                 _line
-                _note "Login with your admin account on the HP SIM server $SimServer"
+                _note "Login with your admin account on the HP SIM server(s) ${SimServer[@]}"
                 _note "and check if for system $lhost a critical (type 4) event arrived"
                 _line
                 echo
@@ -819,7 +837,7 @@ typeset -r SystemName=$(_getSystemName)  # define SystemName, the FQDN of the sy
 typeset -r SerialNr=$(_getSerialNr)      # extract serial number from system
 typeset instlog=$dlog/${PRGNAME%???}.scriptlog
 
-if [ -z "$SimServer" ]; then
+if [ -z "${SimServer[0]}" ]; then
 	_region		# set SimServer FDQN according region
 fi
 
@@ -834,7 +852,7 @@ fi
         echo "         Managed Node: $SystemName"
         echo " System Serial Number: $SerialNr"
         echo "       Executing User: $(whoami)"
-	echo "        HP SIM Server: $SimServer"
+	echo "     HP SIM Server(s): ${SimServer[@]}"
 	echo "         WBEM account: $WbemUser"
 	echo "     Mail Destination: $mailusr"
         echo "                 Date: $(date)"
@@ -878,8 +896,14 @@ fi
         _checkcimconfig # check if the wbem account is privilged to execute cim cmds
         _checkvar       # check /var file system percentage used (<90)
 
-        _pingSimServer  # check if HP SIM server is reachable
-        _checkopenssl   # check if openssl to HP SIm server works
+	i=0
+	count=${#SimServer[@]}  # count amount of SIMSERVERs
+	while [ $i -lt $count ]
+	do
+        	_pingSimServer ${SimServer[i]}  # check if HP SIM server is reachable
+        	_checkopenssl  ${SimServer[i]}  # check if openssl to HP SIm server works
+		i=$((i + 1))
+	done
 
         _checkSimSub    # check if system has an valid HPSIM subscription
         _checkWebesSub  # check if system has a HPWEBES subscription

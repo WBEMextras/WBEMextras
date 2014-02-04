@@ -31,6 +31,7 @@ typeset mailusr="root"                                  # default mailing destin
 typeset WbemUser="wbem"                                 # the wbem account name (default value)
 typeset ConfFile=/usr/local/etc/HPSIM_irsa.conf
 typeset debug=""					# by default no debug lines
+typeset Str=""						# used for short SimServers regular expression with grep
 # ----------------------------------------------------------------------------
 
 
@@ -56,7 +57,7 @@ function _helpMsg {
 	-d: Debug mode (safe mode)
 
 	$PRGNAME run without any switch will use the following default values:
-	-s $SimServer -m $mailusr
+	-s ${SimServer[0]} -m $mailusr
 
 	Purpose is to delete obsolete HPSIM and WEBES subscriptions on this system.
 	eof
@@ -104,14 +105,14 @@ function _dumpSubscriptions {
 }
 
 function _validSubscriptions {
-	cat /tmp/_dumpSubscriptions.$$ | grep -iq $short_SimServer
+	cat /tmp/_dumpSubscriptions.$$ | grep -iq -E "(${Str})"
 	if [ $? -eq 0 ]; then
-		_note "Found valid HPSIM/HPWEBES subscriptions with $short_SimServer :"
-		cimsub -ls | grep -E '(HPSIM|WEBES)' | grep -i $short_SimServer
+		_note "Found valid HPSIM/HPWEBES subscriptions with ${short_SimServer[@]} :"
+		cimsub -ls | grep -E '(HPSIM|WEBES)' | grep -i -E "(${Str})"
 		_line
 		echo
 	else
-		_note "ERROR: no HPSIM nor HPWEBES subscriptions found for $short_SimServer"
+		_note "ERROR: no HPSIM nor HPWEBES subscriptions found for ${short_SimServer[@]}"
 		_note " Refuse to delete any existing subscription until subscriptions are created with $short_SimServer"
 		rm -f /tmp/_dumpSubscriptions.$$
 		exit 1
@@ -119,7 +120,7 @@ function _validSubscriptions {
 }
 
 function _removeOldSimSubscriptions {
-	grep HPSIM /tmp/_dumpSubscriptions.$$ | grep -vi $short_SimServer > /tmp/_removeOldSimSubscriptions.$$ 2>/dev/null
+	grep HPSIM /tmp/_dumpSubscriptions.$$ | grep -vi -E "(${Str})"  > /tmp/_removeOldSimSubscriptions.$$ 2>/dev/null
 	[ ! -s /tmp/_removeOldSimSubscriptions.$$ ] && return	# empty file (nothing to do)
 	cat /tmp/_removeOldSimSubscriptions.$$ | while read LINE
 	do
@@ -131,7 +132,7 @@ function _removeOldSimSubscriptions {
 }
 
 function _removeOldWebesSubscriptions {
-	grep WEBES /tmp/_dumpSubscriptions.$$ | grep -vi $short_SimServer > /tmp/_removeOldWebesSubscriptions.$$ 2>/dev/null
+	grep WEBES /tmp/_dumpSubscriptions.$$ | grep -vi -E "(${Str})" > /tmp/_removeOldWebesSubscriptions.$$ 2>/dev/null
 	[ ! -s /tmp/_removeOldWebesSubscriptions.$$ ] && return   # empty file (nothing to do)
 	cat /tmp/_removeOldWebesSubscriptions.$$  | while read LINE
 	do
@@ -143,7 +144,7 @@ function _removeOldWebesSubscriptions {
 }
 
 function _removeOldSimFilters {
-	cimsub -lf | grep HPSIM | grep -iv $short_SimServer | while read LINE
+	cimsub -lf | grep HPSIM | grep -iv -E "(${Str})" | while read LINE
 	do
 		FILTER=$(echo $LINE | awk '{print $1}')
 		_note "Deleting Filter: " $FILTER
@@ -152,7 +153,7 @@ function _removeOldSimFilters {
 }
 
 function _removeOldWebesFilters {
-	cimsub -lf | grep WEBES | grep -iv $short_SimServer | while read LINE
+	cimsub -lf | grep WEBES | grep -iv -E "(${Str})" | while read LINE
 	do
 		FILTER=$(echo $LINE | awk '{print $1}')
 		_note "Deleting Filter: " $FILTER
@@ -161,7 +162,7 @@ function _removeOldWebesFilters {
 }
 
 function _removeOldSimHandlers {
-	cimsub -lh | grep HPSIM | grep -iv $short_SimServer | while read LINE
+	cimsub -lh | grep HPSIM | grep -iv -E "(${Str})" | while read LINE
 	do
 		HANDLER=$(echo $LINE | awk '{print $1}')
 		_note "Deleting Handler: " $HANDLER
@@ -170,7 +171,7 @@ function _removeOldSimHandlers {
 }
 
 function _removeOldWebesHandlers {
-	cimsub -lh | grep WEBES | grep -iv $short_SimServer | while read LINE
+	cimsub -lh | grep WEBES | grep -iv -E "(${Str})" | while read LINE
 	do
 		HANDLER=$(echo $LINE | awk '{print $1}')
 		_note "Deleting Handler: " $HANDLER
@@ -253,13 +254,21 @@ fi
 #                                       MAIN BODY
 # ------------------------------------------------------------------------------
 typeset instlog=$dlog/${PRGNAME%???}.scriptlog
-if [ -z "$SimServer" ]; then
+if [ -z "${SimServer[@]}" ]; then
 	_note "ERROR: No HPSIM Server was defined (-s option), nor found in $ConfFile"
 	exit 1
 else
 	# we use variable short_SimServer  (short hostname of SimServer) in all our functions
-	short_SimServer=$(echo $SimServer | cut -d. -f1)
+	i=0
+	count=${#SimServer[@]}
+	while [ $i -lt $count ]
+	do
+		short_SimServer[$i]=$(echo ${SimServer[i]} | cut -d. -f1)
+		i=$((i + 1))
+	done
 fi
+
+Str="$( echo ${short_SimServer[@]} | sed -e s'/ /\|/g' )"  # reform array into grep reg expr
 
 # before jumping into MAIN move the existing instlog to instlog.old
 [ -f $instlog ] && mv -f $instlog ${instlog}.old
@@ -269,7 +278,7 @@ fi
 	_line
 	echo "               Script: $PRGNAME"
 	echo "         Managed Node: $lhost"
-	echo "        HP SIM Server: $SimServer"
+	echo "        HP SIM Server: ${SimServer[@]}"
 	echo "     Mail Destination: $mailusr"
 	echo "                 Date: $(date)"
 	echo "                  Log: $instlog"

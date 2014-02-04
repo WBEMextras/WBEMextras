@@ -1276,7 +1276,8 @@ function BaseDepo_os_available {
 # -----------------------------------------------------------------------------
 #                              Setting up the default values
 # -----------------------------------------------------------------------------
-typeset IUXSERVER mailusr SimServer	# defaults are empty
+typeset IUXSERVER mailusr 		# defaults are empty
+typeset SimServer[0]=""			# defaults are empty (we could have redundant SimServers)
 typeset WbemUser=wbem
 typeset HpsmhAdminGroup=hpsmh
 typeset baseDepo=/var/opt/ignite/depots/GLOBAL/rsp/pre-req
@@ -1316,7 +1317,7 @@ while getopts ":u:g:d:m:c:s:hpvi" opt; do
 		h) _msg; echo; exit 2 ;;
 		p) _ask_for_password ;;
 		v) _revision; exit ;;
-		s) SimServer="$OPTARG" ;;
+		s) SimServer[0]="$OPTARG" ;;
 		i) INSTALL_MODE=1 ;;
 		c) ConfFile="$OPTARG"
 		   [ -f $ConfFile ] && . $(dirname $ConfFile)/${ConfFile##*/}
@@ -1691,8 +1692,9 @@ echo "# mailusr=\"root,someuser@corporation.com\""
 echo "mailusr=${mailusr}"
 echo ""
 echo "# The HP SIM server FQDN (no default for this one!)"
-echo "# SimServer="HPSIM_FQDN""
-echo "SimServer=${SimServer}"
+echo "# SimServer[0]="HPSIM_FQDN""
+echo "# SimServer[1]="2TH_HPSIM_FQDN""
+echo "SimServer[0]=${SimServer}"
 echo ""
 echo "# The maximum Test Delay in seconds for sending"
 echo "# out a test event (only used by HPSIM-HealthCheck.sh)"
