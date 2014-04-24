@@ -22,4 +22,4 @@ See /usr/share/doc/wbemextras.html or web-site http://wbemextras.github.com/
 
 To install this depot you could execute the following command, e.g.
 
-swinstall -v -x mount_all_filesystems=false -s ./WBEMextras_A.01.00.05.depot \*
+swinstall -v -x mount_all_filesystems=false -s ./WBEMextras_A.01.00.06.depot \*

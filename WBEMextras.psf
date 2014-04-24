@@ -10,17 +10,18 @@
 # 1.4: gdhaese1 - 25/Jun/2012 - changed similar.html into wbemextras.html
 #				HTML page is build via jekyll --safe (under Linux)
 # 1.5: gdhaese1 - 21/Jan/2013 - added cleanup_subscriptions.sh script
+# 1.6: gdhaese1 - 24/Apr/2014 - increment version number to A.01.00.06
 
     tag WBEMextras
     title HP WBEM Extras for HP-UX
     description HP WBEM Extras for HP-UX
     copyright (c)Copyright GPL v3
-    number A.01.00.05
+    number A.01.00.06
 
 product
     tag WBEMextras
     title HP WBEM Extras for HP-UX
-    revision A.01.00.05
+    revision A.01.00.06
     description  HP WBEM Extras for HP-UX
     copyright (c)Copyright GPL v3
     architecture HP-UX_B.11_32/64
@@ -42,7 +43,7 @@ product
     fileset
         tag Restart_cim_sfm
         title WBEM/SFM restart cimserver and cimproviders
-        revision A.01.00.05
+        revision A.01.00.06
         description restart_cim_sfm.sh script
 	architecture HP-UX_B.11_32/64
         machine_type *
@@ -60,7 +61,7 @@ product
     fileset
 	tag HPSIM_IRS_scripts
 	title HPSIM/IRS related scripts
-	revision A.01.00.05
+	revision A.01.00.06
 	description HPSIM/RSP related scripts
 	architecture HP-UX_B.11_32/64
 	machine_type *
