@@ -1489,8 +1489,8 @@ _start_hpsmh $HighestTestNr "Start System Mgmt Homepage"
 HighestTestNr=$((HighestTestNr + 1))
 
 # Test - RSP patches required?
-_check_rsp_patches $HighestTestNr "HP SIM/IRSA Patches"
-HighestTestNr=$((HighestTestNr + 1))
+#_check_rsp_patches $HighestTestNr "HP SIM/IRSA Patches"
+#HighestTestNr=$((HighestTestNr + 1))
 
 # Test - check ProviderSvcsCore
 #_check_ProviderSvcsCore $HighestTestNr "ProviderSvcsCore"

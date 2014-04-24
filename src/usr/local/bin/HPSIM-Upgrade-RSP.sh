@@ -569,15 +569,15 @@ do
 					_skip
 				fi
 				;;
-			"WBEMpatches-1123")
-				if [ "$os" -eq "11.23" ]; then
-					_print "Bundle $bundle ($title) is missing on on this system"; _ok
-					_installMissingSw $bundle $srcbver $title
-				else
-					_print "Bundle $bundle is ment for HP-UX 11.23 only"
-					_skip
-				fi
-				;;
+			#"WBEMpatches-1123")
+				#if [ "$os" -eq "11.23" ]; then
+					#_print "Bundle $bundle ($title) is missing on on this system"; _ok
+					#_installMissingSw $bundle $srcbver $title
+				#else
+					#_print "Bundle $bundle is ment for HP-UX 11.23 only"
+					#_skip
+				#fi
+				#;;
                         *)      _print "Bundle $bundle ($title) is missing on on this system"; _ok 
                                 _installMissingSw $bundle $srcbver $title ;;
                 esac
