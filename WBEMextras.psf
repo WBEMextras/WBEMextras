@@ -10,7 +10,7 @@
 # 1.4: gdhaese1 - 25/Jun/2012 - changed similar.html into wbemextras.html
 #				HTML page is build via jekyll --safe (under Linux)
 # 1.5: gdhaese1 - 21/Jan/2013 - added cleanup_subscriptions.sh script
-# 1.6: gdhaese1 - 24/Apr/2014 - increment version number to A.01.00.06
+# 1.6: gdhaese1 - 24/Apr/2014 - increment version to A.01.00.06
 
     tag WBEMextras
     title HP WBEM Extras for HP-UX
