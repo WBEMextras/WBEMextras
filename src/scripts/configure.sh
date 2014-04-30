@@ -77,7 +77,7 @@ then
 	exit 1
 fi
 
-/usr/bin/sed -e 's/^SimServer=.*/SimServer='$SimServer'/' -e 's/^IUXSERVER=.*/IUXSERVER='$IUXSERVER'/' \
+/usr/bin/sed -e 's/^SimServer\[0\]=.*/SimServer\[0\]='$SimServer'/' -e 's/^IUXSERVER=.*/IUXSERVER='$IUXSERVER'/' \
 	< /usr/newconfig/usr/local/etc/HPSIM_irsa.conf >$CFGFILE
 /sbin/chmod 640 $CFGFILE
 /sbin/chown root:sys $CFGFILE
