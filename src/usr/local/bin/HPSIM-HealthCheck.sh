@@ -688,7 +688,7 @@ function _checkvar {
 }
 
 function _pingSimServer {
-        z=$(ping ${1} -n 2 | grep "packet loss" | cut -d, -f3 | awk '{print $1}' | cut -d% -f1)
+        z=$(ping ${1} -n 2 2>/dev/null | grep "packet loss" | cut -d, -f3 | awk '{print $1}' | cut -d% -f1)
 	[ -z "$z" ] && z=1
         _print "HP SIM Server ${1} is reachable"
         [ $z -eq 0 ] && _ok || _nok
