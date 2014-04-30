@@ -146,7 +146,7 @@ IMPLEMENTATION
   version	Id: $PRGNAME $
   Revision	$(_revision)
   Author	Gratien D'haese
-  Release Date	09-Nov-2012
+  Release Date	30-Apr-2014
 eof
 }
 
@@ -364,7 +364,7 @@ function _check_wbem {
 
 function _check_WBEMextras {
 	# install the WBEMextras product (if required)
-	$SWLIST WBEMextras,r\>=A.01.00.04 >/dev/null 2>&1
+	$SWLIST WBEMextras,r\>=A.01.00.05 >/dev/null 2>&1
 	CODE=$?
 	if [ $CODE -eq 0 ]; then
 		_note "WBEMextras is OK"
@@ -570,7 +570,7 @@ function _check_WBEMMgmtBundle {
 	CODE=0
 	case ${OSver} in
 		"B.11.31")
-			$SWLIST WBEMMgmtBundle,r\>=C.02.01 >/dev/null 2>&1
+			$SWLIST WBEMMgmtBundle,r\>=C.06.01 >/dev/null 2>&1
 			CODE=$?
 			;;
 		*)	CODE=na
@@ -1726,8 +1726,18 @@ echo "# The WbemUser will belong to this secondary group to allow access to HP S
 echo "HpsmhAdminGroup=\"${HpsmhAdminGroup}\""
 echo "EOF"
 echo "cat $ConfFile"
-echo ""
 echo "fi"
+# new section for extracting HPSIM certificate
+echo "echo \# Extracting the CERTIFICATE from ${SimServer} HP SIM server"
+echo ". $ConfFile"   # read the variables from config file (we need the SimServer)
+echo "echo | openssl s_client -connect ${SimServer}:2381 -showcerts 2>/dev/null |\\"
+echo "awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' \\"
+echo "> /var/opt/hpsmh/certs/${SimServer}.pem"
+echo "echo \# Add certificates into the trust db"
+echo "cimtrust -a -U ${WbemUser} -f /var/opt/hpsmh/certs/${SimServer}.pem -T s 2>/dev/null"
+echo "cimtrust -a -U ${WbemUser} -f /etc/opt/hp/sslshare/cert.pem -T s 2>/dev/null"
+echo "echo \# The cimtrust imported are:"
+echo "cimtrust -l"
 echo "} > $dlog/`basename ${CSCRIPT%???}`-config.scriptlog 2>&1"
 } > $CSCRIPT && chmod 755 $CSCRIPT
 
