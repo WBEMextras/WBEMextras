@@ -540,7 +540,11 @@ function _checkpamconf {
 }
 
 function _checkEMS {
-        version="`echo q | /etc/opt/resmon/lbin/monconfig | grep 'EMS Version' | cut -d: -f2`"
+	if [ -x /etc/opt/resmon/lbin/monconfig ]; then
+        	version="`echo q | /etc/opt/resmon/lbin/monconfig | grep 'EMS Version' | cut -d: -f2`"
+	else
+		version="N/A"
+	fi
         _print "EMS Monitors ("$version" ) are enabled"
         if [ -x /etc/opt/resmon/lbin/monconfig ]; then
                 echo "q" | /etc/opt/resmon/lbin/monconfig | grep -q "EVENT MONITORING IS CURRENTLY ENABLED"
