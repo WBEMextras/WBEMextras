@@ -88,7 +88,7 @@ fi
 ############################
 #   Compare config files   #
 ############################
-LATEST_BACKUP_COPY_CFGFILE="$(ls -1rt $CFGFILE.* 2>/dev/null | tail -1)"
+LATEST_BACKUP_COPY_CFGFILE="$(/usr/bin/ls -1rt $CFGFILE.* 2>/dev/null | /usr/bin/tail -1)"
 
 [[ -z "$LATEST_BACKUP_COPY_CFGFILE" ]] && exit 0  # nothing to do
 
