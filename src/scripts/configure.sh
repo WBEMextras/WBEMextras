@@ -22,36 +22,36 @@ function _region {
             if (( $secdig == 0 )); then
                 # Lab
                 SimServer="itsusratdc03.dfdev.jnj.com"
-                IUXSERVER=hplabx1.dfdev.jnj.com
+                IUXSERVER=bl870ci2.dfdev.jnj.com
             elif (( $secdig == 56 || $secdig == 57 )); then
 		# MOPS
-		SimServer="itsusrasim5.jnj.com"
+		SimServer="itsusraw01231.jnj.com"
 		IUXSERVER=itsblp02.jnj.com
             elif (( $secdig == 1 || $secdig <= 95 )); then
                 # North America
-                SimServer="itsusrasim5.jnj.com"
+                SimServer="itsusraw01231.jnj.com"
                 IUXSERVER=itsblp02.jnj.com
             elif (( $secdig == 96 || $secdig <= 127 )); then
                 # Latin America
-                SimServer="itsusrasim5.jnj.com"
+                SimServer="itsusraw01231.jnj.com"
                 IUXSERVER=itsblp02.jnj.com
             elif (( $secdig == 128 || $secdig <= 191 )); then
                 # EU
-                SimServer="itsbebesim03.jnj.com"
+                SimServer="itsbebew00331.jnj.com"
                 IUXSERVER=hpx261.jnj.com
             elif (( $secdig == 192 || $secdig <= 223 )); then
                 # ASPAC
-                SimServer="itsbebesim03.jnj.com"
+                SimServer="ITSAPSYSIM01.jnj.com"
                 IUXSERVER=hpx261.jnj.com
             else
                 # Leftovers come to NA
-                SimServer="itsusrasim5.jnj.com"
+                SimServer="itsusraw01231.jnj.com"
                 IUXSERVER=itsblp02.jnj.com
             fi
 	    ;;
         *)
 	    /usr/bin/echo "       * NOTE: Could not determine network location.  Using defaults."
-	    SimServer=itsusrasim5.jnj.com
+	    SimServer=itsusraw01231.jnj.com
 	    IUXSERVER=itsblp02.jnj.com
 	    ;;
     esac
@@ -77,12 +77,34 @@ then
 	exit 1
 fi
 
-/usr/bin/sed -e 's/^SimServer\[0\]=.*/SimServer\[0\]='$SimServer'/' -e 's/^IUXSERVER=.*/IUXSERVER='$IUXSERVER'/' \
-	< /usr/newconfig/usr/local/etc/HPSIM_irsa.conf >$CFGFILE
+# make sure when we upgrade WBEMextras that we do not overwrite the current cfgfile
+if [[ ! -f "$CFGFILE" ]] ; then
+    # fresh installation - $CFGFILE does not yet exist - create one
+    /usr/bin/sed -e 's/^SimServer\[0\]=.*/SimServer\[0\]='$SimServer'/' -e 's/^IUXSERVER=.*/IUXSERVER='$IUXSERVER'/' \
+	< /usr/newconfig/usr/local/etc/HPSIM_irsa.conf > "$CFGFILE"
+else
+    # ok this is an upgrade - do an inplace modification
+    LATEST_BACKUP_COPY_CFGFILE="$(/usr/bin/ls -1rt $CFGFILE.* 2>/dev/null | /usr/bin/tail -1)"  # preinstall script did this
+    if [[ -z "$LATEST_BACKUP_COPY_CFGFILE" ]] ; then
+	cp -p "$CFGFILE"  "$CFGFILE.$(date +'%Y-%m-%d')"  # make a copy
+	LATEST_BACKUP_COPY_CFGFILE="$CFGFILE.$(date +'%Y-%m-%d')"
+    fi
+    # check if $CFGFILE defined SimServer as an array or not?
+    grep -q "^SimServer=" "$LATEST_BACKUP_COPY_CFGFILE"
+    if [[ $? -eq 0 ]] ; then
+        # old style (no array definition) - new cfgfile will use array definition
+	/usr/bin/sed -e 's/^SimServer=.*/SimServer\[0\]='$SimServer'/' -e 's/^IUXSERVER=.*/IUXSERVER='$IUXSERVER'/' \
+	   < "$LATEST_BACKUP_COPY_CFGFILE" > "$CFGFILE"
+    else
+        /usr/bin/sed -e 's/^SimServer\[0\]=.*/SimServer\[0\]='$SimServer'/' -e 's/^IUXSERVER=.*/IUXSERVER='$IUXSERVER'/' \
+	   < "$LATEST_BACKUP_COPY_CFGFILE" > "$CFGFILE"
+    fi
+fi
+
 /sbin/chmod 640 $CFGFILE
 /sbin/chown root:sys $CFGFILE
 /usr/bin/echo "       * Created the $CFGFILE"
-/usr/bin/echo "       * Using value: SimServer=$SimServer"
+/usr/bin/echo "       * Using value: SimServer[0]=$SimServer"
 /usr/bin/echo "       * Using value: IUXSERVER=$IUXSERVER"
 
 ############################
