@@ -108,7 +108,7 @@ function _validSubscriptions {
 	cat /tmp/_dumpSubscriptions.$$ | grep -iq -E "(${Str})"
 	if [ $? -eq 0 ]; then
 		_note "Found valid HPSIM/HPWEBES subscriptions with ${short_SimServer[@]} :"
-		cimsub -ls | grep -E '(HPSIM|WEBES)' | grep -i -E "(${Str})"
+		cat /tmp/_dumpSubscriptions.$$ | grep -E '(HPSIM|WEBES)' | grep -i -E "(${Str})"
 		_line
 		echo
 	else
