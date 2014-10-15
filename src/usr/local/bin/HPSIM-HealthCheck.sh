@@ -367,19 +367,19 @@ function _region {
                                 SimServer[0]="10.0.55.107"  # itsusratdc03.dfdev.jnj.com
                         elif [ $secdig -eq 1 ] || [ $secdig -le 95 ]; then
                                 # North America
-                                SimServer[0]="itsusrasim3.jnj.com"
+                                SimServer[0]="itsusraw01231.jnj.com"
                         elif [ $secdig -eq 96 ] || [ $secdig -le 127 ]; then
                                 # Latin America
-                                SimServer[0]="itsusrasim3.jnj.com"
+                                SimServer[0]="itsusraw01231.jnj.com"
                         elif [ $secdig -eq 128 ] || [ $secdig -le 191 ]; then
                                 # EMEA
-                                SimServer[0]="itsbebesim03.jnj.com"
+                                SimServer[0]="itsbebew00331.jnj.com"
                         elif [ $secdig -eq 192 ] || [ $secdig -le 223 ]; then
                                 # ASPAC
-                                SimServer[0]="itsbebesim03.jnj.com"
+                                SimServer[0]="ITSAPSYSIM01.jnj.com"
                         else
                                 # Leftovers come to NA
-                                SimServer[0]="itsusrasim3.jnj.com"
+                                SimServer[0]="itsusraw01231.jnj.com"
                         fi
                 ;;
                 *)
@@ -766,6 +766,29 @@ function _show_older_filesets {
 	rm -f /tmp/filesets.$$
 }
 
+function _check_sfm_log {
+	_print "Errors detected in postgres database(s)"
+	grep "^$(date '+%m/%d/%y')" /var/opt/sfm/log/sfm.log | grep -e ERROR -e CRITICAL > /tmp/sfm_errors.$$ 2>/dev/null
+	grep -q LOGDB /tmp/sfm_errors.$$
+	if [ $? -eq 0 ]; then
+		# LOGDB seems to be non-functional!
+		_nok
+		_line
+		_note "LOGDB not working - to fix do the following:"
+		_note "swconfig -u SysFaultMgmt"
+		_note "swconfig SysFaultMgmt"
+		_note "/sbin/init.d/hpsmh start"
+		_line
+	else
+		_warn
+		_line
+		_note "WARNING: we found minor errors in the sfm.log file:"
+		tail -10 /tmp/sfm_errors.$$
+		_line
+	fi
+	rm -f /tmp/sfm_errors.$$
+}
+
 # -----------------------------------------------------------------------------
 #				End of Functions
 # -----------------------------------------------------------------------------
@@ -915,6 +938,7 @@ fi
         _sendTestEvent  # final test - send a test event to HP SIM
         _show_ext_subscriptions # show any external subscription of SIM/WEBES
         _show_eventviewer       # show the most recent events
+	_check_sfm_log  # verify if serious ERRORS/CRITICALS are logged in sfm.log file
 
         _list_syslog
         echo

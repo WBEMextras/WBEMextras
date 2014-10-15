@@ -183,7 +183,8 @@ function _listCurrentSubscriptions {
 	echo	# extra blank line before we dump our subscriptions (for clarity)
 	_line
 	_note "The following subscriptions remain on system $lhost :"
-	cimsub -ls | grep -E '(HPSIM|WEBES)'
+	_dumpSubscriptions
+	grep -E '(HPSIM|WEBES)' /tmp/_dumpSubscriptions.$$
 	_line
 }
 
