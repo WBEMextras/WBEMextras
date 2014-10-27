@@ -98,11 +98,11 @@ OPTIONS
         occurs.  Use this option with a valid SMTP email address.
 
   -d [IP address or FQDN of Software Depot server]:<Absolute path to base depot>
-        Example: -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+        Example: -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL
         The actual software depots are then located under:
-          B.11.11 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.11
-          B.11.23 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.23
-          B.11.31 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.31
+          B.11.11 : /var/opt/ignite/depots/GLOBAL/11.11
+          B.11.23 : /var/opt/ignite/depots/GLOBAL/11.23
+          B.11.31 : /var/opt/ignite/depots/GLOBAL/11.31
         However, -d /cdrom/rsp/pre-req is also valid where same rules apply as above.
 
   -c <configuration file>
@@ -113,7 +113,7 @@ OPTIONS
         Prints the version of $PRGNAME.
 
 EXAMPLES
-    $PRGNAME -d 10.4.9.76:/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+    $PRGNAME -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL
         Run $PRGNAME in preview mode only and will give a status update.
     $PRGNAME -d /test/irsa_1131_apr_2012.depot
 	Run $PRGNAME in preview mode only and use a file depot as source depot
@@ -125,7 +125,7 @@ IMPLEMENTATION
   version       Id: $PRGNAME $
   Revision      $(_revision)
   Author        Gratien D'haese
-  Release Date  09-Nov-2012
+  Release Date  27-Oct-2014
 eof
 }
 
@@ -349,6 +349,35 @@ function _line {
                 echo "${1}\c"
         done
         echo
+}
+
+function _check_if_LOGDB_is_broken {
+	# purpose is to identify if we are hit by "DB Connection failed to LOGDB" issue
+	if [[ ! -f /var/opt/sfm/log/sfm.log ]]; then
+		# if this file is not found we are probably using an HP-UX 11.11 system
+		return
+	fi
+	tail -10 /var/opt/sfm/log/sfm.log | grep -e ERROR -e CRITICAL > /tmp/LOGDB_errors.txt
+	if [[ $? -eq 0 ]]; then
+		_note "We found errors in /var/opt/sfm/log/sfm.log"
+		cat /tmp/LOGDB_errors.txt
+		_line "-"
+		_fix_LOGDB
+	fi
+	rm -f /tmp/LOGDB_errors.txt
+}
+
+function _fix_LOGDB {
+	# recreate the SFM LOGDB db
+	_note "$(date) - Un-configuring SysFaultMgmt"
+	$SWCONFIG $swarg -x mount_all_filesystems=false -x autoselect_dependencies=false -u SysFaultMgmt
+	_swjob $1 "un-configuring"
+	_note "$(date) - Configuring SysFaultMgmt"
+	$SWCONFIG $swarg -x mount_all_filesystems=false -x autoselect_dependencies=false SysFaultMgmt
+	_swjob $1 "configuring"
+	_note "$(date) - Restarting HP System Management Homepage"
+	/sbin/init.d/hpsmh start
+	echo
 }
 
 # -----------------------------------------------------------------------------
@@ -600,6 +629,11 @@ do
 done
 
 echo
+# inspect on HP-UX 11.23 and 11.31 if the SFM db LOGDB is broken; if yes, rebuild db
+_check_if_LOGDB_is_broken
+
+
+# is the software configured correctly?
 _note "Are there software components which are still in 'installed' state?"
 _check_sw_state
 
