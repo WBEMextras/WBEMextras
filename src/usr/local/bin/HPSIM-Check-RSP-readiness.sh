@@ -108,11 +108,11 @@ OPTIONS
 	occurs.  Use this option with a valid SMTP email address.
 
   -d [IP address or FQDN of Software Depot server]:<Absolute path to base depot>
-	Example: -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+	Example: -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL/irsa
 	The actual software depots are then located under:
-	  B.11.11 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.11
-	  B.11.23 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.23
-	  B.11.31 : /var/opt/ignite/depots/GLOBAL/rsp/pre-req/11.31
+	  B.11.11 : /var/opt/ignite/depots/GLOBAL/irsa/11.11
+	  B.11.23 : /var/opt/ignite/depots/GLOBAL/irsa/11.23
+	  B.11.31 : /var/opt/ignite/depots/GLOBAL/irsa/11.31
 	However, -d /cdrom/irsa_1131_apr_2012.depot is also valid where same rules apply as above.
 
   -p
@@ -134,7 +134,7 @@ OPTIONS
 	Prints the version of $PRGNAME.
 
 EXAMPLES
-    $PRGNAME -d 10.4.9.76:/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+    $PRGNAME -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL/irsa
 	Run $PRGNAME in preview mode only and will give a status update.
     $PRGNAME -d /test/irsa_1131_apr_2012.depot
 	Run $PRGNAME in preview mode only and use a file depot as source depot
@@ -146,7 +146,7 @@ IMPLEMENTATION
   version	Id: $PRGNAME $
   Revision	$(_revision)
   Author	Gratien D'haese
-  Release Date	30-Apr-2014
+  Release Date	27-Oct-2014
 eof
 }
 
@@ -1280,7 +1280,7 @@ typeset IUXSERVER mailusr 		# defaults are empty
 typeset SimServer[0]=""			# defaults are empty (we could have redundant SimServers)
 typeset WbemUser=wbem
 typeset HpsmhAdminGroup=hpsmh
-typeset baseDepo=/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+typeset baseDepo=/var/opt/ignite/depots/GLOBAL/irsa
 int INSTALL_MODE=0		# default preview mode
 typeset dlog=/var/adm/install-logs                   # Log directory
 # ENCPW contains encrypted password of the wbem user (used for wbem subscription with hp sim)
@@ -1710,7 +1710,7 @@ echo "# IUXSERVER=FQDN"
 echo "IUXSERVER=${IUXSERVER}"
 echo ""
 echo "# The location of the base HPSIM/IRSA depots"
-echo "# baseDepo=/var/opt/ignite/depots/GLOBAL/rsp/pre-req"
+echo "# baseDepo=/var/opt/ignite/depots/GLOBAL/irsa"
 echo "# without 11.11, 11.23 or 11.31 sub-depots names"
 echo "baseDepo=${baseDepo}"
 echo ""

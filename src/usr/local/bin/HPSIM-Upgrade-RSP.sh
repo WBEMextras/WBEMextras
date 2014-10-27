@@ -98,11 +98,11 @@ OPTIONS
         occurs.  Use this option with a valid SMTP email address.
 
   -d [IP address or FQDN of Software Depot server]:<Absolute path to base depot>
-        Example: -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL
+        Example: -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL/irsa
         The actual software depots are then located under:
-          B.11.11 : /var/opt/ignite/depots/GLOBAL/11.11
-          B.11.23 : /var/opt/ignite/depots/GLOBAL/11.23
-          B.11.31 : /var/opt/ignite/depots/GLOBAL/11.31
+          B.11.11 : /var/opt/ignite/depots/GLOBAL/irsa/11.11
+          B.11.23 : /var/opt/ignite/depots/GLOBAL/irsa/11.23
+          B.11.31 : /var/opt/ignite/depots/GLOBAL/irsa/11.31
         However, -d /cdrom/rsp/pre-req is also valid where same rules apply as above.
 
   -c <configuration file>
@@ -113,7 +113,7 @@ OPTIONS
         Prints the version of $PRGNAME.
 
 EXAMPLES
-    $PRGNAME -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL
+    $PRGNAME -d 10.0.0.1:/var/opt/ignite/depots/GLOBAL/irsa
         Run $PRGNAME in preview mode only and will give a status update.
     $PRGNAME -d /test/irsa_1131_apr_2012.depot
 	Run $PRGNAME in preview mode only and use a file depot as source depot
@@ -387,7 +387,7 @@ typeset IUXSERVER mailusr       # defaults are empty
 int INSTALL_MODE=0              # default preview mode
 typeset WbemUser="wbem"         # default account 'wbem'
 # under baseDepo directory sub-dirs are 11.11, 11.23 and 11.31
-typeset baseDepo=/var/opt/ignite/depots/GLOBAL/rsp/pre-req
+typeset baseDepo=/var/opt/ignite/depots/GLOBAL/irsa
 typeset dlog=/var/adm/install-logs                   # Log directory
 #
 # Above settings may also be defined in a ConfFile : /usr/local/etc/HPSIM_irsa.conf
