@@ -69,7 +69,7 @@ function _region {
 CFGFILE="/usr/local/etc/HPSIM_irsa.conf"
 
 # predefine the $SimServer and $IUXSERVER variables by hardcoding it or by function _region
-#_region
+_region
 
 if [[ ! -f /usr/newconfig/usr/local/etc/HPSIM_irsa.conf ]]
 then
@@ -80,31 +80,43 @@ fi
 # make sure when we upgrade WBEMextras that we do not overwrite the current cfgfile
 if [[ ! -f "$CFGFILE" ]] ; then
     # fresh installation - $CFGFILE does not yet exist - create one
+    count=0
     /usr/bin/sed -e 's/^SimServer\[0\]=.*/SimServer\[0\]='$SimServer'/' -e 's/^IUXSERVER=.*/IUXSERVER='$IUXSERVER'/' \
 	< /usr/newconfig/usr/local/etc/HPSIM_irsa.conf > "$CFGFILE"
 else
     # ok this is an upgrade - do an inplace modification
     LATEST_BACKUP_COPY_CFGFILE="$(/usr/bin/ls -1rt $CFGFILE.* 2>/dev/null | /usr/bin/tail -1)"  # preinstall script did this
     if [[ -z "$LATEST_BACKUP_COPY_CFGFILE" ]] ; then
-	cp -p "$CFGFILE"  "$CFGFILE.$(date +'%Y-%m-%d')"  # make a copy
+	cp -p "$CFGFILE"  "$CFGFILE.$(date +'%Y-%m-%d')"  # make a copy (extention, e.g. 2014-10-28)
 	LATEST_BACKUP_COPY_CFGFILE="$CFGFILE.$(date +'%Y-%m-%d')"
     fi
     # check if $CFGFILE defined SimServer as an array or not?
-    grep -q "^SimServer=" "$LATEST_BACKUP_COPY_CFGFILE"
+    /usr/bin/grep -q "^SimServer=" "$LATEST_BACKUP_COPY_CFGFILE"
     if [[ $? -eq 0 ]] ; then
         # old style (no array definition) - new cfgfile will use array definition
+	count=0
 	/usr/bin/sed -e 's/^SimServer=.*/SimServer\[0\]='$SimServer'/' -e 's/^IUXSERVER=.*/IUXSERVER='$IUXSERVER'/' \
 	   < "$LATEST_BACKUP_COPY_CFGFILE" > "$CFGFILE"
     else
-        /usr/bin/sed -e 's/^SimServer\[0\]=.*/SimServer\[0\]='$SimServer'/' -e 's/^IUXSERVER=.*/IUXSERVER='$IUXSERVER'/' \
-	   < "$LATEST_BACKUP_COPY_CFGFILE" > "$CFGFILE"
+	# be careful we could have more definitions of SimServer[*]
+	/usr/bin/grep ^SimServer "$LATEST_BACKUP_COPY_CFGFILE" > /tmp/SimServer.list.$$
+	count=$( /usr/bin/wc -l  /tmp/SimServer.list.$$ | /usr/bin/awk '{print $1}' )   # amount of lines with simservers
+	/usr/bin/grep -q "$SimServer" /tmp/SimServer.list.$$
+	if [[ $? -eq 0 ]]; then
+            # SimServer is already in the list; do nothing
+	    count=$(( count - 1 ))   # need to decrement as array element start with 0
+	else
+	   # we know that $SimServer is not part of the current list; $count is already correct
+	   /usr/bin/echo "SimServer[$count]=$SimServer" >> "$CFGFILE"
+	   /usr/bin/rm -f /tmp/SimServer.list.$$
+	fi
     fi
 fi
 
 /sbin/chmod 640 $CFGFILE
 /sbin/chown root:sys $CFGFILE
 /usr/bin/echo "       * Created the $CFGFILE"
-/usr/bin/echo "       * Using value: SimServer[0]=$SimServer"
+/usr/bin/echo "       * Using value: SimServer[$count]=$SimServer"
 /usr/bin/echo "       * Using value: IUXSERVER=$IUXSERVER"
 
 ############################
