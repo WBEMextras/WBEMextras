@@ -325,7 +325,7 @@ function _enable_module {
 function _kill_procs_of_user {
 	# input argument (string): username
 	[[ -z "$1" ]] && return
-	UNIX95= ps -ef | awk '{print $1, $2}' | grep "$1" | awk '{print $2}' | xargs kill
+	UNIX95= ps -ef | awk '{print $1, $2}' | grep "$1" | awk '{print $2}' | xargs kill 2>/dev/null
 }
 
 function _revision {
@@ -536,7 +536,7 @@ echo "  Installation Script: $PRGNAME"
 echo "        Ignite Server: $IUXSERVER"
 echo "           OS Release: $os"
 echo "                Model: $(model)"
-echo "    Installation Host: $HOSTNAME"
+echo "    Installation Host: $lhost"
 echo "    Installation User: $(whoami)"
 echo "    Installation Date: $(date +'%Y-%m-%d @ %H:%M:%S')"
 echo "     Installation Log: $instlog"

@@ -174,7 +174,7 @@ function _checkSimSub {
         grep -q HPSIM /tmp/_checkSub.$$
         if [ $? -eq 0 ]; then
 		count=${#SimServer[@]}	# count the amount of SIMSERVERS defined
-		grep HPSIM /tmp/_checkSub.$$ | tr [A-Z] [a-z] > /tmp/_old_subscriptions.$$   # only keep HPSIM entries
+		grep HPSIM /tmp/_checkSub.$$ | tr '[A-Z]' '[a-z]' > /tmp/_old_subscriptions.$$   # only keep HPSIM entries
 		cp /tmp/_old_subscriptions.$$  /tmp/_checkSub.$$   # move the file back to see everything
 		while [ $i -lt $count ]
 		do
@@ -207,7 +207,7 @@ function _checkWebesSub {
         grep -q HPWEBES /tmp/_checkWebesSub.$$
         if [ $? -eq 0 ]; then
 		count=${#SimServer[@]}  # count the amount of SIMSERVERS defined
-		grep HPWEBES /tmp/_checkWebesSub.$$ | tr [A-Z] [a-z] > /tmp/_old_subscriptions.$$
+		grep HPWEBES /tmp/_checkWebesSub.$$ | tr '[A-Z]' '[a-z]' > /tmp/_old_subscriptions.$$
 		cp /tmp/_old_subscriptions.$$ /tmp/_checkWebesSub.$$   # only keep HPWEBES stuff
 		while [ $i -lt $count ]
 		do
@@ -733,11 +733,11 @@ function _sendTestEvent {
 			#_print "Sending a test event after sleeping for $SECS seconds"
 			sleep $SECS
 		fi
-                # No errors returned, so lets try to send a message
+                # No errors returned, so lets try to send a test event (simulate a memory error)
                 case ${osVer} in
                         "B.11.11") send_test_event dm_memory ;;
                         "B.11.23") # /dev/ipmi device is absent then use send_test_event
-				   [[ -c /dev/ipmi ]] && sfmconfig -t -a >/dev/null 2>&1 || send_test_event dm_memory ;;
+				   [[ -c /dev/ipmi ]] && sfmconfig -t -m >/dev/null 2>&1 || send_test_event dm_memory ;;
                         "B.11.31") sfmconfig -t -m >/dev/null 2>&1 ;;
                 esac
                 [ $? -eq 0 ] && _ok || _nok
@@ -767,24 +767,22 @@ function _show_older_filesets {
 }
 
 function _check_sfm_log {
-	_print "Errors detected in postgres database(s)"
+	_print "Checking sfm.log for postgres database(s) issues"
 	grep "^$(date '+%m/%d/%y')" /var/opt/sfm/log/sfm.log | grep -e ERROR -e CRITICAL > /tmp/sfm_errors.$$ 2>/dev/null
 	grep -q LOGDB /tmp/sfm_errors.$$
 	if [ $? -eq 0 ]; then
 		# LOGDB seems to be non-functional!
 		_nok
 		_line
-		_note "LOGDB not working - to fix do the following:"
+		tail -10  /tmp/sfm_errors.$$
+		_line
+		_note "Possible LOGDB issues found (a fix might be):"
 		_note "swconfig -u SysFaultMgmt"
 		_note "swconfig SysFaultMgmt"
 		_note "/sbin/init.d/hpsmh start"
 		_line
 	else
-		_warn
-		_line
-		_note "WARNING: we found minor errors in the sfm.log file:"
-		tail -10 /tmp/sfm_errors.$$
-		_line
+		_ok
 	fi
 	rm -f /tmp/sfm_errors.$$
 }
