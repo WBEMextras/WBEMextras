@@ -776,11 +776,11 @@ function _check_sfm_log {
 		_line
 		tail -10  /tmp/sfm_errors.$$
 		_line
-		_note "Possible LOGDB issues found (a fix might be):"
-		_note "swconfig -u SysFaultMgmt"
-		_note "swconfig SysFaultMgmt"
-		_note "/sbin/init.d/hpsmh start"
-		_line
+		#_note "Possible LOGDB issues found (a fix might be):"
+		#_note "swconfig -u SysFaultMgmt"
+		#_note "swconfig SysFaultMgmt"
+		#_note "/sbin/init.d/hpsmh start"
+		#_line
 	else
 		_ok
 	fi
