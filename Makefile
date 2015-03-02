@@ -23,3 +23,10 @@ build:
 	/usr/sbin/swpackage -vv -d $$depot_file  -x target_type=tape -s $(depot_dir) \* ; \
 	echo "File depot location is $$depot_file" ; \
 	echo "Done."
+
+upload:
+	depot_file=`ls -lrt "./$(product)_"*".depot" | tail -1 | awk '{print $$9}'` ; \
+	echo "File depot $$depot_file will be uploaded" ; \
+	curl --netrc --upload-file $$depot_file --url ftp://apache07.hostbasket.com/wwwroot/projects/wbemextras/ ; \
+	echo "Upload Done."
+

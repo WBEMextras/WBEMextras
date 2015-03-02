@@ -12,6 +12,7 @@
 #	- unlock wbem account if needed
 #	- stop/start cimserver to catch errors if any
 #	- check if SFMProviderModule is in Degraded mode
+#	- restart on a daily basis the cimserver; and only if psbdb is hanging the db too
 #	We run this script from crontab of root
 #	We may add argument "-u WBEM-account-name" to overrule the default
 
@@ -115,8 +116,9 @@ function is_cimserver_running {
 	return 0
 }
 
-function cimserver_restart_needed {
+function daily_cimserver_restart_needed {
 	# goal is to restart the cimserver on daily basis - use ps output to check this
+	# "no" restart needed returns 0
 	message=$( ps -ef  | grep cimservermain | grep -v grep | awk '{printf "%s %2s", $5, $6}' )
 	if [ -z "$message" ]; then
 		message=$( ps -ef  | grep cimservera | grep -v grep | awk '{printf "%s %2s", $5, $6}' )
@@ -132,7 +134,65 @@ function cimserver_restart_needed {
 	return 0
 }
 
+function test_event_recorded {
+	# do we find a test event in psbdb?
+	#-> crontab -l | grep cim
+	# 6,21,36,51  <== time is always within the hour so make it a bit easier to guess
+	#/opt/sfm/bin/evweb eventviewer -L | head -5 | tail -1
+	# on HP-UX 11.31:
+	#659       Information 103            Memory         Mon Mar  2 10:59:01 2015  Test event
+	#                                                        ^^^^^^^^^^
+	# on HP-UX 11.23:
+	#12        Information 103            Memory         2015-03-02 14: Test event
+	# on HP-UX 11.11:
+	#348      Information 103            Memory         2015-02-24 04: This is a t...
+
+	case ${OSver} in
+	   "B.11.11"|"B.11.23")
+		month_today=$( date '+%m' )      # 03
+		day_today=$( date '+%d' )        # 02
+		hour_today=$( date '+%H' )       # 10
+		;;
+           "B.11.31")
+		month_today=$( date '+%b' )                    # Mar
+		day_today=$( date '+%e' | awk '{print $1}' )   # 2
+		hour_today=$( date '+%H' )                     # 10
+		;;
+	esac
+	last_entry=$( /opt/sfm/bin/evweb eventviewer -L | head -5 | tail -1 )
+	echo "$last_entry"  |  grep -qi error
+	if [[ $? -eq 0 ]]; then
+		sys_logger ${PRGNAME} "evweb: An error occured while executing the request"
+		return 2
+	fi
+	case ${OSver} in
+	   "B.11.11"|"B.11.23")
+		month_entry=$( echo "$last_entry" | awk '{print $5}' | cut -d- -f2 )
+		day_entry=$( echo "$last_entry" | awk '{print $5}' | cut -d- -f3 )
+		hour_entry=$( echo "$last_entry" | awk '{print $6}' | cut -d: -f1 )
+		;;
+	   "B.11.31")
+		# ok - we have an entry - check of which day/hour
+		month_entry=$( echo "$last_entry" | awk '{print $6}' )
+		day_entry=$( echo "$last_entry" | awk '{print $7}' )
+		hour_entry=$( echo "$last_entry" | awk '{print $8}' | cut -d: -f1 )
+		;;
+	esac
+
+	if [[ "$month_entry" != "$month_today" ]] || [[ "$day_entry" != "$day_today" ]] || \
+	   [[ "$hour_entry" != "$hour_today" ]] ; then
+		sys_logger ${PRGNAME} "Last test event dates from $(echo $last_entry | awk '{print $6, $7, $8}')"
+		return 1
+        fi
+	return 0
+}
+
 function restart_cimserver {
+	stop_cimserver
+	start_cimserver
+}
+
+function stop_cimserver {
 	echo "${PRGNAME}: Force a cimserver restart"
 	sys_logger ${PRGNAME} "Force a cimserver restart"
 	/opt/wbem/sbin/cimserver -s > /dev/null 2>&1
@@ -143,7 +203,7 @@ function restart_cimserver {
 	if [ ! -z "$message" ]; then
 		echo "${PRGNAME}: kill -9 `echo $message`"
 		kill -9 `echo $message`
-		sys_logger ${PRGNAME} "killed cimservermain process (`echo $message`)"
+		sys_logger ${PRGNAME} "Killed cimservermain process (`echo $message`)"
 	fi
 
 	# check hanging cimprovider agents - kill these
@@ -151,42 +211,111 @@ function restart_cimserver {
 	if [ ! -z "$message" ]; then
 		echo "${PRGNAME}: kill -9 `echo $message`"
 		kill -9 `echo $message`
-		sys_logger ${PRGNAME} "killed cimprovagt processes (`echo $message`)"
+		sys_logger ${PRGNAME} "Killed cimprovagt processes (`echo $message`)"
 	fi
-
-	# restart the PostgresSQL daemons
-	echo "${PRGNAME}: restart the PostgresSQL daemons"
-	sys_logger ${PRGNAME} "restart the PostgresSQL daemons"
-	restart_PostgresSQL
-
-	# restart cimserver
-	/opt/wbem/sbin/cimserver > /dev/null 2>&1
 }
 
-function restart_PostgresSQL {
+function start_cimserver {
+	# start cimserver
+	/opt/wbem/sbin/cimserver > /dev/null 2>&1
+	sleep 10   # give cimserver some time to start-up properly
+}
+
+function psbdb_healtcheck {
+	# send a test event and check if it is recorded in LOGDB
+	send_test_event
+
+	# verify if the test event was recorded in evweb (psbdb)
+	test_event_recorded 
+	case $? in
+	   0)	# all fine
+		sys_logger ${PRGNAME} "Test event was seen in evweb [OK]"
+		echo "${PRGNAME}: test event was seen in evweb [OK]"
+		;;
+	   1)   # no recent test event found
+		sys_logger ${PRGNAME} "Test event was missing in evweb [NOK]"
+		echo "${PRGNAME}: test event was missing in evweb [NOK]"
+		# ok - before restarting the psbdb/sfmdb disable/enable SFMProviderModule
+		disable_SFMProviderModule
+		sleep 5
+		enable_SFMProviderModule
+		sleep 5
+		send_test_event
+		test_event_recorded
+		if [[ $? -eq 1 ]]; then
+			stop_cimserver
+			restart_PostgreSQL
+			start_cimserver
+		fi
+		;;
+	   2)	# evweb: an error occured - probably SFM not configured properly
+		echo "${PRGNAME}: SysFaultMgmt possible in bad configuration state [ERR]"
+		;;
+	esac
+}
+
+function send_test_event {
+	echo "${PRGNAME}: Send a memory test event"
+	sys_logger ${PRGNAME} "Send a memory test event"
+	case $OSver in
+	   "B.11.11") /opt/resmon/bin/send_test_event dm_memory ;;
+	   "B.11.23") # /dev/ipmi device is absent then use send_test_event
+		      [[ -c /dev/ipmi ]] && /opt/sfm/bin/sfmconfig -t -m >/dev/null 2>&1 || /opt/resmon/bin/send_test_event dm_memory ;;
+	   "B.11.31") /opt/sfm/bin/sfmconfig -t -m >/dev/null 2>&1 ;;
+	esac
+	if [ $? -ne 0 ]; then
+		echo "${PRGNAME}: sfmconfig return an error"
+		sys_logger ${PRGNAME} "sfmconfig returned with an error (check HPSIM on HP-UX)"
+	fi
+	sleep 5   # give evweb some time to record the test event
+}
+
+function restart_PostgreSQL {
+	echo "${PRGNAME}: Restart the PostgreSQL daemons"
+	sys_logger ${PRGNAME} "Restart the PostgreSQL daemons"
 	case $OSver in
 		"B.11.11"|"B.11.23")
-			/sbin/init.d/sfmdb restart ;;
+			/sbin/init.d/sfmdb stop
+			sleep 10
+			/sbin/init.d/sfmdb start
+			;;
 		"B.11.31")
-			/sbin/init.d/psbdb restart ;;
+			/sbin/init.d/psbdb stop
+			sleep 10
+			/sbin/init.d/psbdb start
+			;;
 		* ) sys_logger ${PRGNAME} "Unsupported $OSver"
 	esac
 }
 
-function disable_enable_ProviderModule {
-	CIM_PROVIDER=/opt/wbem/bin/cimprovider
+function disable_SFMProviderModule {
+	CIMPROVIDER=/opt/wbem/bin/cimprovider
+	$CIMPROVIDER -ls | grep -qi SFMProviderModule || return  # module not present
+	sys_logger ${PRGNAME} "Disable SFMProviderModule"
+	$CIMPROVIDER -dm SFMProviderModule >/dev/null 2>&1
+}
 
-	${CIM_PROVIDER} -l -s | egrep -v 'STATUS|OK' | while read PMLine
+function enable_SFMProviderModule {
+	CIMPROVIDER=/opt/wbem/bin/cimprovider
+	$CIMPROVIDER -ls | grep -qi SFMProviderModule || return  # module not present
+	sys_logger ${PRGNAME} "Enable SFMProviderModule"
+	$CIMPROVIDER -em SFMProviderModule >/dev/null 2>&1
+}
+
+function disable_enable_ProviderModule {
+	CIMPROVIDER=/opt/wbem/bin/cimprovider
+
+	${CIMPROVIDER} -l -s | egrep -v 'STATUS|OK' | while read PMLine
 	do
 	ProviderModule=$( echo ${PMLine} | awk '{print $1}'  2>&1 )
 	ProviderStatus=$( echo ${PMLine} | awk '{print $2}'  2>&1 )
 	case ${ProviderStatus} in
 	Degraded)
 		# Disable Provider Module
-		message=$( ${CIM_PROVIDER} -d -m ${ProviderModule} 2>&1 )
+		message=$( ${CIMPROVIDER} -d -m ${ProviderModule} 2>&1 )
 
 		# Enable Provider Module
-		message=$( ${CIM_PROVIDER} -e -m ${ProviderModule} 2>&1 )
+		message=$( ${CIMPROVIDER} -e -m ${ProviderModule} 2>&1 )
 
 		echo "${PRGNAME}: disable/enable $ProviderModule"
 		sys_logger ${PRGNAME} "disable/enable $ProviderModule"
@@ -288,7 +417,11 @@ fi
 is_cimserver_running
 if [ $? -eq 0 ]; then
 	# goal is to restart the cimserver at least once a day
-	cimserver_restart_needed || restart_cimserver
+	daily_cimserver_restart_needed 
+	if [[ $? -eq 1 ]]; then
+		restart_cimserver
+		psbdb_healtcheck
+	fi
 	disable_enable_ProviderModule
 else
 	# start the cimserver if it was not running
