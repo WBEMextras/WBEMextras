@@ -181,7 +181,8 @@ function test_event_recorded {
 
 	if [[ "$month_entry" != "$month_today" ]] || [[ "$day_entry" != "$day_today" ]] || \
 	   [[ "$hour_entry" != "$hour_today" ]] ; then
-		sys_logger ${PRGNAME} "Last test event dates from $(echo $last_entry | awk '{print $6, $7, $8}')"
+		# line below gives good output on HP-UX 11.11, 11.23 and 11.31
+		sys_logger ${PRGNAME} "Last test event dates from $(echo $last_entry | awk '{print $5, $6, $7, $8}')"
 		return 1
         fi
 	return 0
