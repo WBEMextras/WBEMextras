@@ -180,9 +180,12 @@ function _checkSimSub {
 		do
 			# add a check if old subscription exist
 			short_SimServer[$i]=$(echo ${SimServer[i]} | cut -d. -f1)
+			_print "Valid HPSIM subscription for SIM server ${short_SimServer[i]}"
 			grep -v ${short_SimServer[i]} /tmp/_checkSub.$$ > /tmp/_old_subscriptions.$$
 			if [ $? -eq 1 ]; then
-        			_print "Valid HPSIM subscription for SIM server ${short_SimServer[i]}" ; _ok
+        			_ok # if /tmp/_old_subscriptions.$$ is empty
+			else
+				_nok
 			fi
 			cp /tmp/_old_subscriptions.$$  /tmp/_checkSub.$$ 
 			i=$(( i + 1 ))
@@ -192,9 +195,8 @@ function _checkSimSub {
 		_note "Did you added system $SystemName to HP SIM and ran \"Subscribe to WBEM Events\"?"
         fi
 	if [ -s /tmp/_old_subscriptions.$$ ]; then
-		_warn
-		_note "WARNING: please remove these old HPSIM subscriptions"
 		_line
+		_note "WARNING: please remove these old HPSIM subscriptions"
 		cat /tmp/_old_subscriptions.$$
 		_line
 	fi
@@ -213,9 +215,12 @@ function _checkWebesSub {
 		do
 			# add a check if old subscription exist
 			short_SimServer[$i]=$(echo ${SimServer[i]} | cut -d. -f1)
+			_print "Valid HPWEBES subscription for SIM server ${short_SimServer[i]}"
 			grep -v ${short_SimServer[i]} /tmp/_checkWebesSub.$$ > /tmp/_old_subscriptions.$$
 			if [ $? -eq 1 ]; then
-                		_print "Valid HPWEBES subscription for SIM server ${short_SimServer[i]}" ; _ok
+                		_ok
+			else
+				_nok
 			fi
 			cp /tmp/_old_subscriptions.$$ /tmp/_checkWebesSub.$$
 			i=$(( i + 1 ))
@@ -226,9 +231,8 @@ function _checkWebesSub {
                 _note "System $SystemName does not have an HPWEBES subscription"
         fi
 	if [ -s /tmp/_old_subscriptions.$$ ]; then
-		_warn
-		_note "WARNING: please remove these old HPWEBES subscriptions"
 		_line
+		_note "WARNING: please remove these old HPWEBES subscriptions"
 		cat /tmp/_old_subscriptions.$$
 		_line
 	fi
