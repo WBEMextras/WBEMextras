@@ -767,20 +767,23 @@ function _show_older_filesets {
 }
 
 function _check_sfm_log {
-	_print "Checking sfm.log for postgres database(s) issues"
-	grep "^$(date '+%m/%d/%y')" /var/opt/sfm/log/sfm.log | grep -e ERROR -e CRITICAL > /tmp/sfm_errors.$$ 2>/dev/null
-	grep -q LOGDB /tmp/sfm_errors.$$
+	_print "Checking sfm(db).log for postgres database(s) issues"
+	case ${osVer} in
+	  "B.11.11"|"B.11.23") # check file /var/opt/sfmdb/pgsql/sfmdb.log
+		tail -10 /var/opt/sfmdb/pgsql/sfmdb.log | grep -e ERROR -e FATAL > /tmp/sfm_errors.$$ 2>/dev/null
+		;;
+	  "B.11.31") # check file /var/opt/sfm/log/sfm.log
+		grep "^$(date '+%m/%d/%y')" /var/opt/sfm/log/sfm.log | grep -e ERROR -e CRITICAL > /tmp/sfm_errors.$$ 2>/dev/null
+		;;
+	esac
+
+	grep -q -e LOGDB -e evweb /tmp/sfm_errors.$$
 	if [ $? -eq 0 ]; then
-		# LOGDB seems to be non-functional!
+		# LOGDB/evweb seems to be non-functional!
 		_nok
 		_line
-		tail -10  /tmp/sfm_errors.$$
+		grep -e LOGDB -e evweb  /tmp/sfm_errors.$$
 		_line
-		#_note "Possible LOGDB issues found (a fix might be):"
-		#_note "swconfig -u SysFaultMgmt"
-		#_note "swconfig SysFaultMgmt"
-		#_note "/sbin/init.d/hpsmh start"
-		#_line
 	else
 		_ok
 	fi
