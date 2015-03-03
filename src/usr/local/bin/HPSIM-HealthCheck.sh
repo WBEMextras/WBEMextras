@@ -188,7 +188,7 @@ function _checkSimSub {
 			i=$(( i + 1 ))
 		done
         else
-                _nok
+		_print "Valid HPSIM subscription for SIM server ${short_SimServer[i]}" ; _nok
 		_note "Did you added system $SystemName to HP SIM and ran \"Subscribe to WBEM Events\"?"
         fi
 	if [ -s /tmp/_old_subscriptions.$$ ]; then
