@@ -225,6 +225,7 @@ function start_cimserver {
 function psbdb_healtcheck {
 	# send a test event and check if it is recorded in LOGDB
 	send_test_event
+	sleep 60     # we have seen in worse case it took a minute before it was recorded in evweb
 
 	# verify if the test event was recorded in evweb (psbdb)
 	test_event_recorded 
@@ -242,6 +243,7 @@ function psbdb_healtcheck {
 		enable_SFMProviderModule
 		sleep 5
 		send_test_event
+		sleep 60
 		test_event_recorded
 		if [[ $? -eq 1 ]]; then
 			stop_cimserver
@@ -268,7 +270,6 @@ function send_test_event {
 		echo "${PRGNAME}: sfmconfig return an error"
 		sys_logger ${PRGNAME} "sfmconfig returned with an error (check HPSIM on HP-UX)"
 	fi
-	sleep 5   # give evweb some time to record the test event
 }
 
 function restart_PostgreSQL {
@@ -279,11 +280,13 @@ function restart_PostgreSQL {
 			/sbin/init.d/sfmdb stop
 			sleep 10
 			/sbin/init.d/sfmdb start
+			sleep 5
 			;;
 		"B.11.31")
 			/sbin/init.d/psbdb stop
 			sleep 10
 			/sbin/init.d/psbdb start
+			sleep 5
 			;;
 		* ) sys_logger ${PRGNAME} "Unsupported $OSver"
 	esac
