@@ -147,6 +147,7 @@ function test_event_recorded {
 	# on HP-UX 11.11:
 	#348      Information 103            Memory         2015-02-24 04: This is a t...
 
+	# first define some local vars for month/day/hour to compare with
 	case ${OSver} in
 	   "B.11.11"|"B.11.23")
 		month_today=$( date '+%m' )      # 03
@@ -159,7 +160,9 @@ function test_event_recorded {
 		hour_today=$( date '+%H' )                     # 10
 		;;
 	esac
-	last_entry=$( /opt/sfm/bin/evweb eventviewer -L | head -5 | tail -1 )
+	# last_entry="  2015-03-09 11: This is a t..."   # hp-ux 11.11/11.23
+	# last_entry="   Thu Mar  5 23:09:55 2015  Fabric Name Server rejected..."  # hp-ux 11.31
+	last_entry=$( /opt/sfm/bin/evweb eventviewer -L | head -5 | tail -1 | cut -c50- )
 	echo "$last_entry"  |  grep -qi error
 	if [[ $? -eq 0 ]]; then
 		sys_logger ${PRGNAME} "evweb: An error occured while executing the request"
@@ -167,15 +170,15 @@ function test_event_recorded {
 	fi
 	case ${OSver} in
 	   "B.11.11"|"B.11.23")
-		month_entry=$( echo "$last_entry" | awk '{print $5}' | cut -d- -f2 )
-		day_entry=$( echo "$last_entry" | awk '{print $5}' | cut -d- -f3 )
-		hour_entry=$( echo "$last_entry" | awk '{print $6}' | cut -d: -f1 )
+		month_entry=$( echo "$last_entry" | awk '{print $1}' | cut -d- -f2 )
+		day_entry=$( echo "$last_entry" | awk '{print $1}' | cut -d- -f3 )
+		hour_entry=$( echo "$last_entry" | awk '{print $2}' | cut -d: -f1 )
 		;;
 	   "B.11.31")
 		# ok - we have an entry - check of which day/hour
-		month_entry=$( echo "$last_entry" | awk '{print $6}' )
-		day_entry=$( echo "$last_entry" | awk '{print $7}' )
-		hour_entry=$( echo "$last_entry" | awk '{print $8}' | cut -d: -f1 )
+		month_entry=$( echo "$last_entry" | awk '{print $2}' )
+		day_entry=$( echo "$last_entry" | awk '{print $3}' )
+		hour_entry=$( echo "$last_entry" | awk '{print $4}' | cut -d: -f1 )
 		;;
 	esac
 
@@ -222,8 +225,30 @@ function start_cimserver {
 	sleep 10   # give cimserver some time to start-up properly
 }
 
+function no_need_to_send_a_test_event {
+	# we check if we saw a successful test event today - YES return 0; NO=1
+	grep restart_cim /var/adm/syslog/syslog.log | grep "Test event was seen in evweb" | tail -1 > /tmp/test.event.$$
+	#Mar  9 14:22:02 hpx189 restart_cim_sfm.sh: Test event was seen in evweb [OK]
+	if [[ ! -s /tmp/test.event.$$ ]]; then
+		return 1  # empty file means no test event seen
+	fi
+	month_today=$( date '+%b' )                    # Mar
+	day_today=$( date '+%e' | awk '{print $1}' )   # 2
+	#hour_today=$( date '+%H' )                     # 10
+	month_last_test_event=$(cat /tmp/test.event.$$ | awk '{print $1}')  # Mar
+	day_last_test_event=$(cat /tmp/test.event.$$ | awk '{print $2}')    # 9
+	if [[ "$month_last_test_event" != "$month_today" ]] || [[ "$day_today" != "$day_last_test_event" ]]; then
+		return 1  # time for a new test event
+	fi
+	rm -f /tmp/test.event.$$
+	return 0
+}
+
 function psbdb_healtcheck {
 	# send a test event and check if it is recorded in LOGDB
+	# noticed that we send too many test events after the recent code change, we should only send a test once day
+	no_need_to_send_a_test_event  && return
+
 	send_test_event
 	sleep 60     # we have seen in worse case it took a minute before it was recorded in evweb
 
@@ -423,7 +448,7 @@ if [ $? -eq 0 ]; then
 	# goal is to restart the cimserver at least once a day
 	daily_cimserver_restart_needed 
 	if [[ $? -eq 1 ]]; then
-		restart_cimserver
+		#restart_cimserver
 		psbdb_healtcheck
 	fi
 	disable_enable_ProviderModule
