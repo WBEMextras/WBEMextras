@@ -162,7 +162,7 @@ function test_event_recorded {
 	esac
 	# last_entry="  2015-03-09 11: This is a t..."   # hp-ux 11.11/11.23
 	# last_entry="   Thu Mar  5 23:09:55 2015  Fabric Name Server rejected..."  # hp-ux 11.31
-	last_entry=$( /opt/sfm/bin/evweb eventviewer -L | head -5 | tail -1 | cut -c50- )
+	last_entry=$( /opt/sfm/bin/evweb eventviewer -L | head -5 | tail -1 | cut -c52- )
 	echo "$last_entry"  |  grep -qi error
 	if [[ $? -eq 0 ]]; then
 		sys_logger ${PRGNAME} "evweb: An error occured while executing the request"
@@ -185,7 +185,7 @@ function test_event_recorded {
 	if [[ "$month_entry" != "$month_today" ]] || [[ "$day_entry" != "$day_today" ]] || \
 	   [[ "$hour_entry" != "$hour_today" ]] ; then
 		# line below gives good output on HP-UX 11.11, 11.23 and 11.31
-		sys_logger ${PRGNAME} "Last test event dates from $(echo $last_entry | awk '{print $5, $6, $7, $8}')"
+		sys_logger ${PRGNAME} "Last test event dates from ${day_entry}/${month_entry} (dd/mm) : ${hour_entry}h"
 		return 1
         fi
 	return 0
