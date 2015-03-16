@@ -226,9 +226,8 @@ function _checkWebesSub {
 			i=$(( i + 1 ))
 		done
         else
-                _nok
+                _print "HP WEBES subscription for SIM server $SystemName present?" ; _nok
                 SendTestEvent=1         # no need to send test event
-                _note "System $SystemName does not have an HPWEBES subscription"
         fi
 	if [ -s /tmp/_old_subscriptions.$$ ]; then
 		_line
