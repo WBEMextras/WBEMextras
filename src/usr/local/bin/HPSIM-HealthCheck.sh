@@ -499,6 +499,17 @@ function _checkhpsmh {
         fi
 }
 
+function _checkSFMdirperm {
+	ExtractMode /opt/sfm
+	if [ "${mode}" = "555" ]; then
+		_print "Directory permissions of /opt/sfm ($mode)"
+		_ok
+	else		
+		_print "Directory permissions of /opt/sfm ($mode) should be 555" 
+		_nok
+	fi
+}
+
 function _checksslshare {
         ExtractMode /etc/opt/hp/sslshare
         if [ "${mode}" = "555" ]; then
@@ -912,6 +923,7 @@ fi
         _checkWBEMSvcs  # check if WBEMSvcs state is configured
 	_show_older_filesets	# check if there are previous filesets still around
         _checkEMS       # check if /etc/opt/lbin/monconfig is present and EMS enabled
+	_checkSFMdirperm	# check permissions of directory of /opt/sfm
         _checkhpsmh     # check permissions of directory /opt/hpsmh
         _checksslshare  # check permissions of directory /etc/opt/hp/sslshare
         _checkbootconf  # check permissions of /stand/boot.conf file 
