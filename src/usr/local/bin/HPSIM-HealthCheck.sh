@@ -175,19 +175,20 @@ function _checkSimSub {
         if [ $? -eq 0 ]; then
 		count=${#SimServer[@]}	# count the amount of SIMSERVERS defined
 		grep HPSIM /tmp/_checkSub.$$ | tr '[A-Z]' '[a-z]' > /tmp/_old_subscriptions.$$   # only keep HPSIM entries
-		cp /tmp/_old_subscriptions.$$  /tmp/_checkSub.$$   # move the file back to see everything
+		cp -f /tmp/_old_subscriptions.$$  /tmp/_checkSub.$$   # move the file back to see everything
 		while [ $i -lt $count ]
 		do
-			# add a check if old subscription exist
+			# add a check if subscription exist
 			short_SimServer[$i]=$(echo ${SimServer[i]} | cut -d. -f1)
 			_print "Valid HPSIM subscription for SIM server ${short_SimServer[i]}"
-			grep -v ${short_SimServer[i]} /tmp/_checkSub.$$ > /tmp/_old_subscriptions.$$
-			if [ $? -eq 1 ]; then
+			grep -q ${short_SimServer[i]} /tmp/_checkSub.$$
+			if [[ $? -eq 0 ]]; then
+				grep -v ${short_SimServer[i]} /tmp/_checkSub.$$ > /tmp/_old_subscriptions.$$
+				cp -f /tmp/_old_subscriptions.$$  /tmp/_checkSub.$$ 
         			_ok # if /tmp/_old_subscriptions.$$ is empty
 			else
 				_nok
 			fi
-			cp /tmp/_old_subscriptions.$$  /tmp/_checkSub.$$ 
 			i=$(( i + 1 ))
 		done
         else
@@ -210,19 +211,20 @@ function _checkWebesSub {
         if [ $? -eq 0 ]; then
 		count=${#SimServer[@]}  # count the amount of SIMSERVERS defined
 		grep HPWEBES /tmp/_checkWebesSub.$$ | tr '[A-Z]' '[a-z]' > /tmp/_old_subscriptions.$$
-		cp /tmp/_old_subscriptions.$$ /tmp/_checkWebesSub.$$   # only keep HPWEBES stuff
+		cp -f /tmp/_old_subscriptions.$$ /tmp/_checkWebesSub.$$   # only keep HPWEBES stuff
 		while [ $i -lt $count ]
 		do
-			# add a check if old subscription exist
+			# add a check if subscription exist
 			short_SimServer[$i]=$(echo ${SimServer[i]} | cut -d. -f1)
 			_print "Valid HPWEBES subscription for SIM server ${short_SimServer[i]}"
-			grep -v ${short_SimServer[i]} /tmp/_checkWebesSub.$$ > /tmp/_old_subscriptions.$$
-			if [ $? -eq 1 ]; then
+			grep -q ${short_SimServer[i]} /tmp/_checkWebesSub.$$
+			if [[ $? -eq 0 ]]; then
+				grep -v ${short_SimServer[i]} /tmp/_checkWebesSub.$$ > /tmp/_old_subscriptions.$$
+				cp -f /tmp/_old_subscriptions.$$ /tmp/_checkWebesSub.$$
                 		_ok
 			else
 				_nok
 			fi
-			cp /tmp/_old_subscriptions.$$ /tmp/_checkWebesSub.$$
 			i=$(( i + 1 ))
 		done
         else
