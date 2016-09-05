@@ -1,5 +1,5 @@
 ################################################################################
-# Version Info : @(#)WBEMextras.psf      1.8   19/Mar/2015
+# Version Info : @(#)WBEMextras.psf      1.9   06/Sep/2016
 ################################################################################
 
 # Version history:
@@ -13,17 +13,18 @@
 # 1.6: gdhaese1 - 24/Apr/2014 - increment version to A.01.00.06
 # 1.7: gdhaese1 - 29/Oct/2014 - increment version to A.01.00.07 (new script fix_corrupt_sfmdb_on_1131.sh)
 # 1.8: gdhaese1 - 19/Mar/2015 - modified restart_cim_sfm.sh script to send daily a test event and only restart psbdb when required
+# 1.9: gdhaese1 - 06/Sep/2016 - Updated HPSIM-HealthCheck.sh, removed fix_corrupt_sfmdb_on_1131.sh
 
     tag WBEMextras
     title HP WBEM Extras for HP-UX
     description HP WBEM Extras for HP-UX
     copyright (c)Copyright GPL v3
-    number A.01.00.08
+    number A.01.00.09
 
 product
     tag WBEMextras
     title HP WBEM Extras for HP-UX
-    revision A.01.00.08
+    revision A.01.00.09
     description  HP WBEM Extras for HP-UX
     copyright (c)Copyright GPL v3
     architecture HP-UX_B.11_32/64
@@ -45,7 +46,7 @@ product
     fileset
         tag Restart_cim_sfm
         title WBEM/SFM restart cimserver and cimproviders
-        revision A.01.00.08
+        revision A.01.00.09
         description restart_cim_sfm.sh script
 	architecture HP-UX_B.11_32/64
         machine_type *
@@ -63,7 +64,7 @@ product
     fileset
 	tag HPSIM_IRS_scripts
 	title HPSIM/IRS related scripts
-	revision A.01.00.08
+	revision A.01.00.09
 	description HPSIM/RSP related scripts
 	architecture HP-UX_B.11_32/64
 	machine_type *
@@ -79,7 +80,6 @@ product
 	file -m 700 -o root -g sys HPSIM-Check-RSP-readiness.sh
 	file -m 700 -o root -g sys HPSIM-Upgrade-RSP.sh
 	file -m 700 -o root -g sys cleanup_subscriptions.sh
-	file -m 700 -o root -g sys fix_corrupt_sfmdb_on_1131.sh
 
 	directory ./src/usr/share/doc = /usr/share/doc
 	file -m 444 -o bin -g bin wbemextras.html
