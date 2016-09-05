@@ -451,8 +451,14 @@ function _check_apache20 {
 
 	case $CODE in
 		0)
-		_note "hpuxwsApache release is OK"
-		ActionTest[$1]="echo ${ActionTest[$1]} $2 - OK"
+		if [ "${OSver}" = "B.11.31" ]; then
+			_note "hpuxwsApache A.2.0.x is out of support - remove required"
+			ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
+			$(_swremove hpuxwsApache)"
+		else
+			_note "hpuxwsApache release is OK"
+			ActionTest[$1]="echo ${ActionTest[$1]} $2 - OK"
+		fi
 		;;
 		1)
 		if [ "${OSver}" = "B.11.31" ]; then
@@ -570,7 +576,7 @@ function _check_WBEMMgmtBundle {
 	CODE=0
 	case ${OSver} in
 		"B.11.31")
-			$SWLIST WBEMMgmtBundle,r\>=C.06.01 >/dev/null 2>&1
+			$SWLIST WBEMMgmtBundle,r\>=C.09.03 >/dev/null 2>&1
 			CODE=$?
 			;;
 		*)	CODE=na
@@ -585,7 +591,7 @@ function _check_WBEMMgmtBundle {
 			;;
 		*)	_note "(Re-)Install of WBEMMgmtBundle is required"
 			ActionTest[$1]="echo ${ActionTest[$1]} $2 \n
-			$(_swinstall "WBEMMgmtBundle CommonIO SysMgmtPlus" "-x autoreboot=true -x reinstall=false") " 
+			$(_swinstall "WBEMMgmtBundle CommonIO SysMgmtPlus" "-x autoreboot=true -x reinstall=true") " 
 			;;
 	esac
 }
