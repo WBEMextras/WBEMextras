@@ -6,7 +6,7 @@ Simplify Deployment of HPSIM  Insight Remote Support Advanced Agents on HP-UX sy
 
 Author: Gratien D'haese
 
-E-mail: gratien.dhaese @ hp.com
+E-mail: gratien.dhaese @ hpe.com
 
 Source: https://github.com/WBEMextras/WBEMextras
 
@@ -22,4 +22,4 @@ See /usr/share/doc/wbemextras.html or web-site http://wbemextras.github.com/
 
 To install this depot you could execute the following command, e.g.
 
-swinstall -v -x mount_all_filesystems=false -s ./WBEMextras_A.01.00.07.depot \*
+swinstall -v -x mount_all_filesystems=false -s ./WBEMextras_A.01.00.09.depot \*
