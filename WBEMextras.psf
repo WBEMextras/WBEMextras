@@ -13,7 +13,8 @@
 # 1.6: gdhaese1 - 24/Apr/2014 - increment version to A.01.00.06
 # 1.7: gdhaese1 - 29/Oct/2014 - increment version to A.01.00.07 (new script fix_corrupt_sfmdb_on_1131.sh)
 # 1.8: gdhaese1 - 19/Mar/2015 - modified restart_cim_sfm.sh script to send daily a test event and only restart psbdb when required
-# 1.9: gdhaese1 - 06/Sep/2016 - Updated HPSIM-HealthCheck.sh, removed fix_corrupt_sfmdb_on_1131.sh
+# 1.9: gdhaese1 - 10/Jul/2015 - fix false SIM/WEBES sub alerts in HPSIM-HealthCheck.sh script
+#                 06/Sep/2016 - removed fix_corrupt_sfmdb_on_1131.sh
 
     tag WBEMextras
     title HP WBEM Extras for HP-UX

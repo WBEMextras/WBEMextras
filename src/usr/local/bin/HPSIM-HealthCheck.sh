@@ -204,13 +204,28 @@ function _checkSimSub {
         rm -f /tmp/_checkSub.$$ /tmp/_old_subscriptions.$$
 }
 
+function _reverseLookUp {
+	# input arg is IPv4 address; output is hostname or FQDN
+	nslookup "$1" 2>/dev/null | grep Name | awk '{print $2}'
+}
+
 function _checkWebesSub {
 	typeset -i count=0 i=0
+	# With IRS 7.* HPWEBES is not present anymore; it is now HPUCA
         cimsub -ls > /tmp/_checkWebesSub.$$ 2>/dev/null || evweb subscribe -L -b external > /tmp/_checkWebesSub.$$ 2>/dev/null
+	# Now for HPUCA we need some extra side steps - see issue #30
+	grep -q HPUCA /tmp/_checkWebesSub.$$
+	if [ $? -eq 0 ]; then
+		for SimServerIP in $( cimsub -lh | grep -i HPUCA | awk '{print $2}' | cut -d'/' -f 3 | cut -d: -f 1 ) ; do
+			HostNameSimServerHPUCA=$( _reverseLookUp $SimServerIP )
+			[[ ! -z "$HostNameSimServerHPUCA" ]] && echo "HPWEBES   $HostNameSimServerHPUCA" >>  /tmp/_checkWebesSub.$$
+		done
+	fi
         grep -q HPWEBES /tmp/_checkWebesSub.$$
         if [ $? -eq 0 ]; then
 		count=${#SimServer[@]}  # count the amount of SIMSERVERS defined
 		grep HPWEBES /tmp/_checkWebesSub.$$ | tr '[A-Z]' '[a-z]' > /tmp/_old_subscriptions.$$
+		
 		cp -f /tmp/_old_subscriptions.$$ /tmp/_checkWebesSub.$$   # only keep HPWEBES stuff
 		while [ $i -lt $count ]
 		do
@@ -255,7 +270,7 @@ function _show_ext_subscriptions {
         if [ $err -eq 0 ]; then
                 _ok
                 _line
-                cat /tmp/evweb.$$ | grep -E 'HPSIM|HPWEBES'
+                cat /tmp/evweb.$$ | grep -E 'HPSIM|HPWEBES|HPUCA'
                 _line
                 echo
         else
