@@ -80,12 +80,7 @@ function _echo {
 } # echo is not the same between UNIX and Linux
 
 function _line {
-	typeset -i i
-	while (( i < ${1:-80} )); do
-		(( i+=1 ))
-		_echo "-\c"
-	done
-	echo
+	echo "--------------------------------------------------------------------------------"
 } # draw a line
 
 function _whoami {
@@ -96,86 +91,77 @@ function _whoami {
 }
 
 function _dumpSubscriptions {
-	cimsub -ls >/tmp/_dumpSubscriptions.$$ 2>/dev/null || evweb subscribe -L -b external >/tmp/_dumpSubscriptions.$$ 2>/dev/null
-	if [ ! -s /tmp/_dumpSubscriptions.$$ ]; then
+	# The output of cimsub -ls is:
+	# NAMESPACE        FILTER                                HANDLER                                    STATE
+	# root/cimv2       root/cimv2:EVWEB_F_HP_AlertIndication_HP_defaultSyslog_1311702272_1     root/cimv2:PG_ListenerDestinationSystemLog.EVWEB_H_SYSLOG_HP_defaultSyslog_1311702272_1                 Enabled
+
+	# The output of evweb subscribe -L -b external is:
+	# Filter Name           Handler Name                Query                            Destination Type Destination Url
+	# HPSIM_itsbebew00331_1              HPSIM_itsbebew00331      select * from HP_ThresholdIndication        CIMXML           https://10.130.208.20:50004/cimom/listen1
+	cimsub -ls >/tmp/_dumpSubscriptions.cimsub 2>/dev/null || evweb subscribe -L -b external >/tmp/_dumpSubscriptions.evweb 2>/dev/null
+	if [[ -s /tmp/_dumpSubscriptions.cimsub ]] ; then
+		# file has content - we are good to return
+		return
+	else
+		# delete the empty file
+		rm -f /tmp/_dumpSubscriptions.cimsub
+	fi
+	if [[ ! -s /tmp/_dumpSubscriptions.evweb ]] ; then
+		# the file seems empty - not OK
 		_note "ERROR: no HPSIM nor HPWEBES subscriptions found - exiting."
-		rm -f /tmp/_dumpSubscriptions.$$
+		rm -f /tmp/_dumpSubscriptions.evweb
 		exit 1
 	fi
 }
 
 function _validSubscriptions {
-	cat /tmp/_dumpSubscriptions.$$ | grep -iq -E "(${Str})"
+	cat /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb 2>/dev/null | grep -iq -E "(${Str})"
 	if [ $? -eq 0 ]; then
 		_note "Found valid HPSIM/HPWEBES subscriptions with ${short_SimServer[@]} :"
-		cat /tmp/_dumpSubscriptions.$$ | grep -E '(HPSIM|WEBES)' | grep -i -E "(${Str})"
+		cat /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb 2>/dev/null \
+		 | grep -E '(HPSIM|WEBES)' | grep -i -E "(${Str})"
 		_line
 		echo
 	else
 		_note "ERROR: no HPSIM nor HPWEBES subscriptions found for ${short_SimServer[@]}"
 		_note " Refuse to delete any existing subscription until subscriptions are created with $short_SimServer"
-		rm -f /tmp/_dumpSubscriptions.$$
+		rm -f /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb
 		exit 1
 	fi
 }
 
-function _removeOldSimSubscriptions {
-	grep HPSIM /tmp/_dumpSubscriptions.$$ | grep -vi -E "(${Str})"  > /tmp/_removeOldSimSubscriptions.$$ 2>/dev/null
-	[ ! -s /tmp/_removeOldSimSubscriptions.$$ ] && return	# empty file (nothing to do)
-	cat /tmp/_removeOldSimSubscriptions.$$ | while read LINE
-	do
-		FILTER=$(echo $LINE  | sed s/"  "*/" "/g | cut -f 2 -d " ")
-		HANDLER=$(echo $LINE | sed s/"  "*/" "/g | cut -f 3 -d " ")
-		_note "Deleting Subscriptions: " $FILTER " " $HANDLER
-		$debug cimsub -rs -n root/cimv2 -F $FILTER -H $HANDLER
-	done
-}
+function _removeOldSubscriptions {
+	# arg1: HPSIM or WEBES
+	
+	cat /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb 2>/dev/null \
+	 | grep "$1" | grep -vi -E "(${Str})" | awk '{print $1, $2, $3}' > /tmp/_removeOldSubscriptions.$$ 2>/dev/null
+	[ ! -s /tmp/_removeOldSubscriptions.$$ ] && return	# empty file (nothing to do)
 
-function _removeOldWebesSubscriptions {
-	grep WEBES /tmp/_dumpSubscriptions.$$ | grep -vi -E "(${Str})" > /tmp/_removeOldWebesSubscriptions.$$ 2>/dev/null
-	[ ! -s /tmp/_removeOldWebesSubscriptions.$$ ] && return   # empty file (nothing to do)
-	cat /tmp/_removeOldWebesSubscriptions.$$  | while read LINE
+	# cimsub -ra -n root/cimv2 -F root/cimv2:HPSIM_TYPE_1_itsbebew00331_0 -H root/cimv2:CIM_ListenerDestinationCIMXML.HPSIM_TYPE_1_itsb
+	if [ -f /tmp/_dumpSubscriptions.cimsub ] ; then
+		# cimsub: filter is on 2th column and handler at 3th column
+		field1="2"
+		field2="3"
+	else
+		# evweb: filter is on 1st column and handler at 2th column
+		field1="1"
+		field2="2"
+	fi
+	cat /tmp/_removeOldSubscriptions.$$ | while read LINE
 	do
-		FILTER=$(echo $LINE  | sed s/"  "*/" "/g | cut -f 2 -d " ")
-		HANDLER=$(echo $LINE  | sed s/"  "*/" "/g | cut -f 3 -d " ")
-		_note "Deleting Subscriptions: " $FILTER " " $HANDLER
-		$debug cimsub -rs -n root/cimv2 -F $FILTER -H $HANDLER
-	done
-}
-
-function _removeOldSimFilters {
-	cimsub -lf | grep HPSIM | grep -iv -E "(${Str})" | while read LINE
-	do
-		FILTER=$(echo $LINE | awk '{print $1}')
-		_note "Deleting Filter: " $FILTER
-		$debug cimsub -rf -n root/cimv2 -F $FILTER
-	done
-}
-
-function _removeOldWebesFilters {
-	cimsub -lf | grep WEBES | grep -iv -E "(${Str})" | while read LINE
-	do
-		FILTER=$(echo $LINE | awk '{print $1}')
-		_note "Deleting Filter: " $FILTER
-		$debug cimsub -rf -n root/cimv2 -F $FILTER
-	done
-}
-
-function _removeOldSimHandlers {
-	cimsub -lh | grep HPSIM | grep -iv -E "(${Str})" | while read LINE
-	do
-		HANDLER=$(echo $LINE | awk '{print $1}')
-		_note "Deleting Handler: " $HANDLER
-		$debug cimsub -rh -n root/cimv2 -H $HANDLER
-	done
-}
-
-function _removeOldWebesHandlers {
-	cimsub -lh | grep WEBES | grep -iv -E "(${Str})" | while read LINE
-	do
-		HANDLER=$(echo $LINE | awk '{print $1}')
-		_note "Deleting Handler: " $HANDLER
-		$debug cimsub -rh -n root/cimv2 -H $HANDLER
+		FILTER=$(echo $LINE  | cut -f $field1 -d " ")
+		shortHANDLER=$(echo $LINE | cut -f $field2 -d " ")
+		_note "Deleting Subscriptions: " $FILTER " " $shortHANDLER
+		$debug cimsub -rs -n root/cimv2 -F $FILTER -H $shortHANDLER
+		echo
+		# find the longHANDLER name via 'cimsub -lh' (there can only be one per SIM server)
+		longHANDLER=$( cimsub -lh | grep "$1" | grep -iv -E "(${Str})" | awk '{print $1}' )
+		# we can have several filters:
+		cimsub -lf | grep "$1" | grep -iv -E "(${Str})" | awk '{print $1}' | while read FILTER
+		do
+			_note "Deleting Filter ($FILTER) with handler ($longHANDLER)"
+			$debug cimsub -ra -n root/cimv2 -F $FILTER -H $longHANDLER
+		done
 	done
 }
 
@@ -184,13 +170,13 @@ function _listCurrentSubscriptions {
 	_line
 	_note "The following subscriptions remain on system $lhost :"
 	_dumpSubscriptions
-	grep -E '(HPSIM|WEBES)' /tmp/_dumpSubscriptions.$$
+	cat /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb 2>/dev/null | grep -E '(HPSIM|WEBES)'
 	_line
 }
 
 function _cleanup {
-	rm -f /tmp/_dumpSubscriptions.$$ /tmp/_removeOldSimSubscriptions.$$
-	rm -f /tmp/_removeOldWebesSubscriptions.$$
+	rm -f /tmp/_dumpSubscriptions.cimsub /tmp/_removeOldSimSubscriptions.$$
+	rm -f /tmp/_dumpSubscriptions.evweb /tmp/_removeOldWebesSubscriptions.$$
 }
 
 # -----------------------------------------------------------------------------
@@ -288,18 +274,13 @@ Str="$( echo ${short_SimServer[@]} | sed -e s'/ /\|/g' )"  # reform array into g
 	_dumpSubscriptions	# dump into file /tmp/_dumpSubscriptions.$$
 	_validSubscriptions	# check if subscription of SimServer is found
 	# Remove all old HPSIM related subscriptions, filters and handlers
-	_removeOldSimSubscriptions
-	_removeOldSimFilters
-	_removeOldSimHandlers
+	_removeOldSubscriptions HPSIM
 	# Remove all old WEBES related subscriptions, filters and handlers
-	_removeOldWebesSubscriptions
-	_removeOldWebesFilters
-	_removeOldWebesHandlers
+	_removeOldSubscriptions WEBES
 	_listCurrentSubscriptions
 
 	_cleanup
 
 } 2>&1 | tee -a $instlog 2>/dev/null # tee is used in case of interactive run
 [ $? -eq 1 ] && exit 1          # do not send an e-mail as non-root (no log file either)
-
 

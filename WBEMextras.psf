@@ -1,5 +1,5 @@
 ################################################################################
-# Version Info : @(#)WBEMextras.psf      1.9   06/Sep/2016
+# Version Info : @(#)WBEMextras.psf      1.10   21/Mar/2017
 ################################################################################
 
 # Version history:
@@ -15,17 +15,18 @@
 # 1.8: gdhaese1 - 19/Mar/2015 - modified restart_cim_sfm.sh script to send daily a test event and only restart psbdb when required
 # 1.9: gdhaese1 - 10/Jul/2015 - fix false SIM/WEBES sub alerts in HPSIM-HealthCheck.sh script
 #                 06/Sep/2016 - removed fix_corrupt_sfmdb_on_1131.sh
+# 1.10: gdhaese1 - 21/Mar/2017 - HPSIM-HealthCheck.sh: made HPUCA subscription recognized
 
     tag WBEMextras
     title HP WBEM Extras for HP-UX
     description HP WBEM Extras for HP-UX
     copyright (c)Copyright GPL v3
-    number A.01.00.09
+    number A.01.00.10
 
 product
     tag WBEMextras
     title HP WBEM Extras for HP-UX
-    revision A.01.00.09
+    revision A.01.00.10
     description  HP WBEM Extras for HP-UX
     copyright (c)Copyright GPL v3
     architecture HP-UX_B.11_32/64
@@ -47,7 +48,7 @@ product
     fileset
         tag Restart_cim_sfm
         title WBEM/SFM restart cimserver and cimproviders
-        revision A.01.00.09
+        revision A.01.00.10
         description restart_cim_sfm.sh script
 	architecture HP-UX_B.11_32/64
         machine_type *
@@ -65,7 +66,7 @@ product
     fileset
 	tag HPSIM_IRS_scripts
 	title HPSIM/IRS related scripts
-	revision A.01.00.09
+	revision A.01.00.10
 	description HPSIM/RSP related scripts
 	architecture HP-UX_B.11_32/64
 	machine_type *
