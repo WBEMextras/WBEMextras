@@ -170,9 +170,11 @@ function _getSystemName {
 
 function _checkSimSub {
 	typeset -i count=0 i=0
-        cimsub -ls > /tmp/_checkSub.$$ 2>/dev/null || evweb subscribe -L -b external > /tmp/_checkSub.$$ 2>/dev/null
+	# In case IRS is used (new) instead of HPSIM (legacy) servers we need to check HPUCA fields
+        cimsub -ls > /tmp/_checkSub.$$ 2>/dev/null
+	evweb subscribe -L -b external >> /tmp/_checkSub.$$ 2>/dev/null
         grep -q HPSIM /tmp/_checkSub.$$
-        if [ $? -eq 0 ]; then
+        if [ $? -eq 0 ] ; then
 		count=${#SimServer[@]}	# count the amount of SIMSERVERS defined
 		grep HPSIM /tmp/_checkSub.$$ | tr '[A-Z]' '[a-z]' > /tmp/_old_subscriptions.$$   # only keep HPSIM entries
 		cp -f /tmp/_old_subscriptions.$$  /tmp/_checkSub.$$   # move the file back to see everything
@@ -191,6 +193,10 @@ function _checkSimSub {
 			fi
 			i=$(( i + 1 ))
 		done
+	fi
+	grep -q "^HPUCA" /tmp/_checkSub.$$
+	if [ $? -eq 0 ] ; then
+		_print "Valid HPSIM subscription for SIM server (not required for IRS)" ; _na
         else
 		_print "Valid HPSIM subscription for SIM server ${short_SimServer[i]}" ; _nok
 		_note "Did you added system $SystemName to HP SIM and ran \"Subscribe to WBEM Events\"?"
@@ -212,9 +218,10 @@ function _reverseLookUp {
 function _checkWebesSub {
 	typeset -i count=0 i=0
 	# With IRS 7.* HPWEBES is not present anymore; it is now HPUCA
-        cimsub -ls > /tmp/_checkWebesSub.$$ 2>/dev/null || evweb subscribe -L -b external > /tmp/_checkWebesSub.$$ 2>/dev/null
+        cimsub -ls > /tmp/_checkWebesSub.$$ 2>/dev/null 
+	evweb subscribe -L -b external >> /tmp/_checkWebesSub.$$ 2>/dev/null
 	# Now for HPUCA we need some extra side steps - see issue #30
-	grep -q HPUCA /tmp/_checkWebesSub.$$
+	grep -q ^HPUCA /tmp/_checkWebesSub.$$
 	if [ $? -eq 0 ]; then
 		for SimServerIP in $( cimsub -lh | grep -i HPUCA | awk '{print $2}' | cut -d'/' -f 3 | cut -d: -f 1 ) ; do
 			HostNameSimServerHPUCA=$( _reverseLookUp $SimServerIP )
@@ -392,8 +399,8 @@ function _region {
                                 # Latin America
                                 SimServer[0]="itsusraw01231.jnj.com"
                         elif [ $secdig -eq 128 ] || [ $secdig -le 191 ]; then
-                                # EMEA
-                                SimServer[0]="itsbebew00331.jnj.com"
+                                # EMEA IRS
+                                SimServer[0]="itsbebewsp03599.jnj.com"
                         elif [ $secdig -eq 192 ] || [ $secdig -le 223 ]; then
                                 # ASPAC
                                 SimServer[0]="ITSAPSYSIM01.jnj.com"
