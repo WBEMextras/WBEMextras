@@ -90,6 +90,20 @@ function _whoami {
 	fi
 }
 
+function find_IP {
+	# arg1: SIMserver; retrun IP of IRS
+	nslookup "$1" 2>/dev/null | grep Address | awk '{print $2}' > /tmp/find_IP_$$
+	if [ ! -s /tmp/find_IP_$$ ] ; then
+		echo "ERROR: No IP address found for $1"
+		rm -f /tmp/find_IP_$$
+		exit 1
+	fi
+	ip_address=$(cat /tmp/find_IP_$$ )
+	rm -f /tmp/find_IP_$$
+	echo $ip_address
+}
+
+
 function _dumpSubscriptions {
 	# The output of cimsub -ls is:
 	# NAMESPACE        FILTER                                HANDLER                                    STATE
@@ -98,11 +112,10 @@ function _dumpSubscriptions {
 	# The output of evweb subscribe -L -b external is:
 	# Filter Name           Handler Name                Query                            Destination Type Destination Url
 	# HPSIM_itsbebew00331_1              HPSIM_itsbebew00331      select * from HP_ThresholdIndication        CIMXML           https://10.130.208.20:50004/cimom/listen1
-	cimsub -ls >/tmp/_dumpSubscriptions.cimsub 2>/dev/null || evweb subscribe -L -b external >/tmp/_dumpSubscriptions.evweb 2>/dev/null
-	if [[ -s /tmp/_dumpSubscriptions.cimsub ]] ; then
-		# file has content - we are good to return
-		return
-	else
+	cimsub -ls >/tmp/_dumpSubscriptions.cimsub 2>/dev/null
+	# we do both actions as IRS will only be seen by 'evweb'
+	evweb subscribe -L -b external >/tmp/_dumpSubscriptions.evweb 2>/dev/null
+	if [[ ! -s /tmp/_dumpSubscriptions.cimsub ]] ; then
 		# delete the empty file
 		rm -f /tmp/_dumpSubscriptions.cimsub
 	fi
@@ -117,13 +130,13 @@ function _dumpSubscriptions {
 function _validSubscriptions {
 	cat /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb 2>/dev/null | grep -iq -E "(${Str})"
 	if [ $? -eq 0 ]; then
-		_note "Found valid HPSIM/HPWEBES subscriptions with ${short_SimServer[@]} :"
+		_note "Found valid HPUCA/HPSIM/HPWEBES subscriptions with ${short_SimServer[@]} :"
 		cat /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb 2>/dev/null \
-		 | grep -E '(HPSIM|WEBES)' | grep -i -E "(${Str})"
+		 | grep -E '(HPSIM|WEBES|HPUCA)' | grep -i -E "(${Str})"
 		_line
 		echo
 	else
-		_note "ERROR: no HPSIM nor HPWEBES subscriptions found for ${short_SimServer[@]}"
+		_note "ERROR: no HPSIM nor HPWEBES/HPUCA subscriptions found for ${short_SimServer[@]}"
 		_note " Refuse to delete any existing subscription until subscriptions are created with $short_SimServer"
 		rm -f /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb
 		exit 1
@@ -170,7 +183,7 @@ function _listCurrentSubscriptions {
 	_line
 	_note "The following subscriptions remain on system $lhost :"
 	_dumpSubscriptions
-	cat /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb 2>/dev/null | grep -E '(HPSIM|WEBES)'
+	cat /tmp/_dumpSubscriptions.cimsub /tmp/_dumpSubscriptions.evweb 2>/dev/null | grep -E '(^HPUCA|HPSIM|WEBES)'
 	_line
 }
 
@@ -250,12 +263,15 @@ else
 	count=${#SimServer[@]}
 	while [ $i -lt $count ]
 	do
-		short_SimServer[$i]=$(echo ${SimServer[i]} | cut -d. -f1)
+		short_SimServer[$i]=$(echo ${SimServer[$i]} | cut -d. -f1)
+		# IRS systems are not shown with their FQDN, but with IP - so find IP address
+		IP_SimServer[$i]=$(find_IP ${SimServer[$i]})
 		i=$((i + 1))
 	done
 fi
 
-Str="$( echo ${short_SimServer[@]} | sed -e s'/ /\|/g' )"  # reform array into grep reg expr
+# The search string contain the short hostname as well as its IP address
+Str="$( echo ${short_SimServer[@]} ${IP_SimServer[@]} | sed -e s'/ /\|/g' )"  # reform array into grep reg expr
 
 # before jumping into MAIN move the existing instlog to instlog.old
 [ -f $instlog ] && mv -f $instlog ${instlog}.old
